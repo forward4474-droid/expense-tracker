@@ -1,0 +1,2999 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0f7a64" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="생활비 트래커" />
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="icon" href="./icon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="./icon.svg" />
+    <title>생활비 분류 트래커</title>
+    <style>
+      :root {
+        --bg: #f2f4f3;
+        --card: #ffffff;
+        --ink: #1e2826;
+        --muted: #5d6d68;
+        --line: #d8dfdc;
+        --accent: #0f7a64;
+        --warn: #c4512d;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: "Pretendard", "Noto Sans KR", sans-serif;
+        color: var(--ink);
+        background:
+          radial-gradient(circle at top right, #dce7e2 0, transparent 45%),
+          var(--bg);
+      }
+
+      .container {
+        max-width: 1060px;
+        margin: 0 auto;
+        padding: 28px 16px 60px;
+      }
+
+      .top {
+        display: grid;
+        gap: 8px;
+        margin-bottom: 18px;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: 28px;
+      }
+
+      .desc {
+        margin: 0;
+        color: var(--muted);
+      }
+
+      .tabs {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin: 16px 0 24px;
+      }
+
+      .tab-btn {
+        border: 1px solid var(--line);
+        background: #fff;
+        color: var(--ink);
+        padding: 9px 14px;
+        border-radius: 10px;
+        cursor: pointer;
+        font-weight: 600;
+      }
+
+      .tab-btn.active {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: #fff;
+      }
+
+      .grid {
+        display: grid;
+        gap: 14px;
+      }
+
+      .grid.two {
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      }
+
+      .card {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 16px;
+      }
+
+      .card h2,
+      .card h3 {
+        margin: 0 0 12px;
+      }
+
+      .metric {
+        display: flex;
+        justify-content: space-between;
+        margin: 8px 0;
+        font-size: 15px;
+      }
+
+      .value {
+        font-weight: 700;
+      }
+
+      .danger {
+        color: var(--warn);
+      }
+
+      .progress {
+        height: 9px;
+        background: #e4ebe8;
+        border-radius: 99px;
+        overflow: hidden;
+      }
+
+      .bar {
+        height: 100%;
+        background: var(--accent);
+      }
+
+      .bar.over {
+        background: var(--warn);
+      }
+
+      form {
+        display: grid;
+        gap: 12px;
+      }
+
+      .row {
+        display: grid;
+        gap: 8px;
+      }
+
+      .row.cols-3 {
+        grid-template-columns: 1.2fr 1fr 1fr;
+      }
+
+      .row.cols-4 {
+        grid-template-columns: 1.2fr 0.9fr 0.9fr auto;
+      }
+
+      label {
+        font-size: 13px;
+        color: var(--muted);
+      }
+
+      input,
+      select,
+      button {
+        font: inherit;
+      }
+
+      input,
+      select {
+        width: 100%;
+        border: 1px solid var(--line);
+        padding: 9px 10px;
+        border-radius: 9px;
+        background: #fff;
+      }
+
+      .btn {
+        border: 1px solid var(--line);
+        background: #fff;
+        padding: 8px 12px;
+        border-radius: 9px;
+        cursor: pointer;
+        font-weight: 600;
+      }
+
+      .btn.primary {
+        border-color: var(--accent);
+        background: var(--accent);
+        color: #fff;
+      }
+
+      .btn.danger {
+        border-color: #dfc0b8;
+        color: var(--warn);
+      }
+
+      .items-wrap {
+        display: grid;
+        gap: 8px;
+      }
+
+      .pill {
+        display: inline-block;
+        border-radius: 999px;
+        font-size: 12px;
+        padding: 4px 9px;
+        background: #e7f3ef;
+        color: #0b624f;
+      }
+
+      .small {
+        font-size: 13px;
+        color: var(--muted);
+      }
+
+      .trend-chart-wrap {
+        position: relative;
+      }
+
+      .trend-tooltip {
+        position: absolute;
+        left: 0;
+        top: 0;
+        transform: translate(-50%, -120%);
+        background: rgba(24, 35, 32, 0.95);
+        color: #fff;
+        border-radius: 8px;
+        padding: 6px 8px;
+        font-size: 12px;
+        pointer-events: none;
+        white-space: nowrap;
+        opacity: 0;
+        transition: opacity 0.12s ease;
+      }
+
+      .trend-tooltip.show {
+        opacity: 1;
+      }
+
+      .trend-point-hit {
+        cursor: pointer;
+      }
+
+      .top-category-card {
+        border-color: #0f7a64;
+        box-shadow: 0 0 0 2px rgba(15, 122, 100, 0.13);
+      }
+
+      .top-category-badge {
+        display: inline-block;
+        margin-left: 8px;
+        font-size: 11px;
+        border-radius: 999px;
+        padding: 2px 7px;
+        background: #e7f3ef;
+        color: #0b624f;
+        vertical-align: middle;
+      }
+
+      .top-category-card.rank-2 {
+        border-color: #2e9f89;
+        box-shadow: 0 0 0 1px rgba(46, 159, 137, 0.17);
+      }
+
+      .top-category-card.rank-3 {
+        border-color: #68b9aa;
+        box-shadow: 0 0 0 1px rgba(104, 185, 170, 0.15);
+      }
+
+      .alert-row {
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 8px 10px;
+        margin-bottom: 8px;
+        background: #fafcfc;
+      }
+
+      .alert-tag {
+        display: inline-block;
+        border-radius: 999px;
+        font-size: 11px;
+        padding: 2px 8px;
+        margin-right: 6px;
+      }
+
+      .alert-tag.high {
+        background: #f7e4de;
+        color: #ab3b17;
+      }
+
+      .alert-tag.mid {
+        background: #fff1d8;
+        color: #a06406;
+      }
+
+      .alert-tag.low {
+        background: #e9f5ef;
+        color: #0b624f;
+      }
+
+      .edit-notice {
+        margin-bottom: 10px;
+        border: 1px solid #b7d8cf;
+        background: #edf8f4;
+        border-radius: 10px;
+        padding: 8px 10px;
+      }
+
+      .table-wrap {
+        overflow-x: auto;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      th,
+      td {
+        border-bottom: 1px solid var(--line);
+        text-align: left;
+        padding: 9px 6px;
+        white-space: nowrap;
+      }
+
+      .hidden {
+        display: none;
+      }
+
+      .section {
+        display: none;
+      }
+
+      .section.active {
+        display: block;
+      }
+
+      @media (max-width: 720px) {
+        .row.cols-3,
+        .row.cols-4 {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header class="top">
+        <h1>생활비 분류 트래커</h1>
+        <p class="desc">
+          카드 결제를 세부 항목으로 나누고, 계획 대비 초과 지출을 카테고리별로 확인합니다.
+        </p>
+      </header>
+
+      <nav class="tabs">
+        <button class="tab-btn active" data-tab="dashboard">대시보드</button>
+        <button class="tab-btn" data-tab="add">지출 입력</button>
+        <button class="tab-btn" data-tab="manage">분류 관리</button>
+        <button class="tab-btn" data-tab="report">리포트</button>
+        <button class="tab-btn" data-tab="settings">설정</button>
+      </nav>
+
+      <section id="dashboard" class="section active">
+        <div class="card" style="margin-bottom: 14px">
+          <div class="row cols-3">
+            <div>
+              <label for="dashboardMonthFilter">대시보드 대상 월</label>
+              <input id="dashboardMonthFilter" type="month" />
+            </div>
+            <div style="display:flex; align-items:end">
+              <button type="button" class="btn" id="resetDashboardMonthBtn">이번 달로</button>
+            </div>
+            <div style="display:flex; align-items:end; justify-content:flex-end">
+              <span class="small" id="dashboardMonthLabel"></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid two">
+          <div class="card">
+            <h2>이번 달 요약</h2>
+            <div class="metric"><span>총 예산</span><span class="value" id="sumBudget">-</span></div>
+            <div class="metric"><span>총 지출</span><span class="value" id="sumActual">-</span></div>
+            <div class="metric">
+              <span>총 초과</span>
+              <span class="value danger" id="sumOver">-</span>
+            </div>
+            <div class="metric">
+              <span>계획 외 지출</span>
+              <span class="value" id="sumUnplanned">-</span>
+            </div>
+            <div class="metric">
+              <span>월말 예상 지출</span>
+              <span class="value" id="sumForecast">-</span>
+            </div>
+            <div class="metric">
+              <span>예상 초과</span>
+              <span class="value danger" id="sumForecastOver">-</span>
+            </div>
+            <div class="metric">
+              <span>전월 대비</span>
+              <span class="value" id="sumMoMChange">-</span>
+            </div>
+            <div class="small" id="forecastHint"></div>
+          </div>
+          <div class="card">
+            <h2>계획 외 지출 Top 5</h2>
+            <div id="topUnplanned" class="small">아직 데이터가 없습니다.</div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top: 14px">
+          <h2>카테고리별 진행률</h2>
+          <div id="categoryProgress" class="grid"></div>
+        </div>
+
+        <div class="card" style="margin-top: 14px">
+          <h2>월별 지출 트렌드 (최근 6개월)</h2>
+          <div class="trend-chart-wrap">
+            <div id="monthlyTrendChart" class="small">데이터를 계산 중입니다.</div>
+            <div id="monthlyTrendTooltip" class="trend-tooltip" aria-hidden="true"></div>
+          </div>
+          <div id="monthlyTrendLegend" class="small" style="margin-top: 8px"></div>
+        </div>
+
+        <div class="card" style="margin-top: 14px">
+          <h2>알림 센터</h2>
+          <div id="alertCenter" class="small">아직 알림이 없습니다.</div>
+        </div>
+      </section>
+
+      <section id="add" class="section">
+        <div class="card">
+          <h2 id="formTitle">지출 입력 (분할 포함)</h2>
+          <div id="editNotice" class="edit-notice hidden"></div>
+          <form id="txForm">
+            <div class="row cols-3">
+              <div>
+                <label for="date">결제일</label>
+                <input id="date" type="date" required />
+              </div>
+              <div>
+                <label for="merchant">가맹점</label>
+                <input id="merchant" type="text" placeholder="예: 코스트코" required />
+              </div>
+              <div>
+                <label for="totalAmount">총 결제금액</label>
+                <input id="totalAmount" type="number" min="0" step="1" required />
+              </div>
+            </div>
+
+            <div>
+              <div style="display: flex; justify-content: space-between; align-items: center">
+                <h3 style="margin: 0">세부 항목</h3>
+                <button type="button" class="btn" id="addItemRow">+ 항목 추가</button>
+              </div>
+              <p class="small">카테고리를 비워두면 분류 규칙으로 자동 분류됩니다.</p>
+              <div class="items-wrap" id="itemsWrap"></div>
+            </div>
+
+            <div class="metric">
+              <span>항목 합계</span>
+              <span class="value" id="itemsTotal">0원</span>
+            </div>
+            <div class="small" id="validationMsg"></div>
+            <div style="display: flex; gap: 8px">
+              <button type="submit" class="btn primary" id="submitTxBtn">저장</button>
+              <button type="button" class="btn hidden" id="cancelEditBtn">수정 취소</button>
+            </div>
+          </form>
+        </div>
+
+        <div class="card" style="margin-top: 14px">
+          <h2>카드 내역 CSV 업로드</h2>
+          <div class="grid">
+            <div class="row cols-3">
+              <div>
+                <label for="csvFile">CSV 파일</label>
+                <input id="csvFile" type="file" accept=".csv,text/csv" />
+              </div>
+              <div style="display: flex; align-items: end">
+                <button type="button" class="btn" id="importCsvBtn">CSV 가져오기</button>
+              </div>
+              <div style="display:flex; align-items:end">
+                <span class="small">지원 컬럼 예: date, merchant, totalAmount, itemName, itemAmount, category, isPlanned</span>
+              </div>
+            </div>
+            <div class="small" id="csvImportMsg"></div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top: 14px">
+          <h2>최근 입력 내역</h2>
+          <div class="grid" style="margin-bottom: 10px">
+            <div class="row cols-3">
+              <div>
+                <label for="recentSearch">검색 (가맹점/항목명)</label>
+                <input id="recentSearch" type="text" placeholder="예: 코스트코, 식료품" />
+              </div>
+              <div>
+                <label for="recentCategoryFilter">카테고리</label>
+                <select id="recentCategoryFilter"></select>
+              </div>
+              <div>
+                <label for="recentPlannedFilter">계획 여부</label>
+                <select id="recentPlannedFilter">
+                  <option value="all">전체</option>
+                  <option value="planned">계획된 지출만</option>
+                  <option value="unplanned">계획 외 지출 포함</option>
+                </select>
+              </div>
+            </div>
+            <div class="row cols-3">
+              <div>
+                <label for="recentMonthFilter">대상 월</label>
+                <input id="recentMonthFilter" type="month" />
+              </div>
+              <div>
+                <label for="recentMinAmount">최소 금액</label>
+                <input id="recentMinAmount" type="number" min="0" step="1" placeholder="0" />
+              </div>
+              <div>
+                <label for="recentMaxAmount">최대 금액</label>
+                <input id="recentMaxAmount" type="number" min="0" step="1" placeholder="예: 300000" />
+              </div>
+            </div>
+            <div class="row cols-3">
+              <div>
+                <label for="recentSort">정렬</label>
+                <select id="recentSort">
+                  <option value="latest">최신순</option>
+                  <option value="amount_desc">금액순(높은 금액)</option>
+                  <option value="amount_asc">금액순(낮은 금액)</option>
+                  <option value="merchant_asc">가맹점순</option>
+                </select>
+              </div>
+              <div style="display: flex; align-items: end">
+                <button type="button" class="btn" id="resetRecentFilters">최근 내역 필터 초기화</button>
+              </div>
+              <div style="display: flex; align-items: end; justify-content: flex-end">
+                <span class="small" id="recentCount"></span>
+              </div>
+            </div>
+            <div class="row cols-3">
+              <div style="display: flex; align-items: end; gap: 8px">
+                <button type="button" class="btn" id="recentToggleAll">전체 보기</button>
+              </div>
+              <div style="display: flex; align-items: end; gap: 8px; justify-content: center">
+                <button type="button" class="btn" id="recentPrevPage">이전</button>
+                <span class="small" id="recentPageInfo"></span>
+                <button type="button" class="btn" id="recentNextPage">다음</button>
+              </div>
+              <div></div>
+            </div>
+            <div class="small danger" id="recentFilterMsg"></div>
+            <div class="small" id="recentActionMsg"></div>
+          </div>
+          <div id="recentTransactions" class="small">아직 입력한 내역이 없습니다.</div>
+        </div>
+      </section>
+
+      <section id="manage" class="section">
+        <div class="grid two">
+          <div class="card">
+            <h2>카테고리 & 월 예산</h2>
+            <form id="categoryForm">
+              <div class="row cols-3">
+                <div>
+                  <label for="catName">카테고리명</label>
+                  <input id="catName" type="text" placeholder="예: 식비" required />
+                </div>
+                <div>
+                  <label for="catBudget">월 예산</label>
+                  <input id="catBudget" type="number" min="0" step="1" required />
+                </div>
+                <div style="align-self: end">
+                  <button type="submit" class="btn primary">추가</button>
+                </div>
+              </div>
+            </form>
+            <div id="categoryList" class="table-wrap" style="margin-top: 10px"></div>
+          </div>
+
+          <div class="card">
+            <h2>자동 분류 규칙</h2>
+            <form id="ruleForm">
+              <div class="row cols-3">
+                <div>
+                  <label for="ruleKeyword">키워드</label>
+                  <input id="ruleKeyword" type="text" placeholder="예: 스타벅스" required />
+                </div>
+                <div>
+                  <label for="ruleCategory">카테고리</label>
+                  <select id="ruleCategory" required></select>
+                </div>
+                <div style="align-self: end">
+                  <button type="submit" class="btn primary">규칙 추가</button>
+                </div>
+              </div>
+            </form>
+            <div id="ruleList" class="table-wrap" style="margin-top: 10px"></div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top: 14px">
+          <h2>고정지출 템플릿</h2>
+          <form id="templateForm">
+            <div class="row cols-4">
+              <div>
+                <label for="tplName">항목명</label>
+                <input id="tplName" type="text" placeholder="예: 월세" required />
+              </div>
+              <div>
+                <label for="tplMerchant">가맹점/수취인</label>
+                <input id="tplMerchant" type="text" placeholder="예: 집주인" />
+              </div>
+              <div>
+                <label for="tplAmount">금액</label>
+                <input id="tplAmount" type="number" min="0" step="1" required />
+              </div>
+              <div>
+                <label for="tplDay">결제일(매월)</label>
+                <input id="tplDay" type="number" min="1" max="31" step="1" required />
+              </div>
+            </div>
+            <div class="row cols-3">
+              <div>
+                <label for="tplCategory">카테고리</label>
+                <select id="tplCategory"></select>
+              </div>
+              <div style="display:flex; align-items:end; gap:8px">
+                <label><input id="tplPlanned" type="checkbox" checked /> 계획된 지출</label>
+              </div>
+              <div style="align-self:end">
+                <button type="submit" class="btn primary">템플릿 추가</button>
+              </div>
+            </div>
+          </form>
+          <div id="templateList" class="table-wrap" style="margin-top: 10px"></div>
+        </div>
+      </section>
+
+      <section id="report" class="section">
+        <div class="card">
+          <h2>월별 리포트</h2>
+          <div class="row cols-3">
+            <div>
+              <label for="monthFilter">대상 월</label>
+              <input id="monthFilter" type="month" />
+            </div>
+            <div style="display: flex; align-items: end; gap: 8px">
+              <input id="onlyUnplanned" type="checkbox" />
+              <label for="onlyUnplanned">계획 외 지출만 보기</label>
+            </div>
+            <div style="align-self: end">
+              <button class="btn" id="resetFilters" type="button">필터 초기화</button>
+            </div>
+          </div>
+          <div id="reportTable" class="table-wrap" style="margin-top: 12px"></div>
+        </div>
+      </section>
+
+      <section id="settings" class="section">
+        <div class="card">
+          <h2>정책 설정</h2>
+          <form id="settingsForm">
+            <div class="row cols-3">
+              <div>
+                <label for="settingDuplicatePolicy">CSV 중복 처리</label>
+                <select id="settingDuplicatePolicy">
+                  <option value="skip">자동 스킵</option>
+                  <option value="confirm_merge">사용자 확인 후 병합</option>
+                  <option value="keep_all">모두 유지</option>
+                </select>
+              </div>
+              <div>
+                <label for="settingDefaultKeyword">기본 가맹점 키워드</label>
+                <input id="settingDefaultKeyword" type="text" placeholder="예: 쿠팡" />
+              </div>
+              <div>
+                <label for="settingDefaultCategory">기본 가맹점 카테고리</label>
+                <select id="settingDefaultCategory"></select>
+              </div>
+            </div>
+            <div class="row cols-4">
+              <div>
+                <label for="settingWarnPercent">예산 경고 임계치(%)</label>
+                <input id="settingWarnPercent" type="number" min="1" max="100" step="1" />
+              </div>
+              <div>
+                <label for="settingOverPercent">예산 초과 임계치(%)</label>
+                <input id="settingOverPercent" type="number" min="1" max="200" step="1" />
+              </div>
+              <div>
+                <label for="settingUnplannedPercent">계획 외 비중 임계치(%)</label>
+                <input id="settingUnplannedPercent" type="number" min="1" max="100" step="1" />
+              </div>
+              <div>
+                <label for="settingGrowthPercent">전월 증가 임계치(%)</label>
+                <input id="settingGrowthPercent" type="number" min="1" max="200" step="1" />
+              </div>
+            </div>
+            <div style="display:flex; gap:8px">
+              <button type="submit" class="btn primary">설정 저장</button>
+              <button type="button" class="btn" id="resetSettingsBtn">기본값 복원</button>
+              <button type="button" class="btn" id="exportSettingsBtn">설정 내보내기</button>
+              <button type="button" class="btn" id="importSettingsBtn">설정 가져오기</button>
+              <input id="importSettingsFile" type="file" accept=".json,application/json" class="hidden" />
+              <button type="button" class="btn" id="exportAllDataBtn">전체 데이터 내보내기</button>
+              <button type="button" class="btn" id="importAllDataBtn">전체 데이터 가져오기</button>
+              <input id="importAllDataFile" type="file" accept=".json,application/json" class="hidden" />
+              <button type="button" class="btn" id="loadDemoDataBtn">예시 데이터 넣기</button>
+            </div>
+            <div class="small" id="settingsMsg"></div>
+          </form>
+        </div>
+
+        <div class="card" style="margin-top: 14px">
+          <h2>데이터 진단</h2>
+          <div style="display:flex; gap:8px; margin-bottom:8px">
+            <button type="button" class="btn" id="runHealthCheckBtn">진단 실행</button>
+            <button type="button" class="btn" id="previewAutoFixBtn">변경 미리보기</button>
+            <button type="button" class="btn" id="autoFixHealthBtn">자동 수정</button>
+            <button type="button" class="btn" id="undoAutoFixBtn">마지막 수정 되돌리기</button>
+          </div>
+          <div id="healthSummary" class="small"></div>
+          <div id="healthFindings" class="small" style="margin-top:8px"></div>
+        </div>
+      </section>
+    </div>
+
+    <script>
+      const STORE_KEY = "expenseTrackerDataV1";
+      const DEFAULT_SETTINGS = {
+        duplicatePolicy: "confirm_merge",
+        defaultMerchantKeyword: "쿠팡",
+        defaultMerchantCategoryName: "생활",
+        thresholdWarnPct: 80,
+        thresholdOverPct: 100,
+        thresholdUnplannedPct: 25,
+        thresholdGrowthPct: 20,
+      };
+
+      const defaultData = {
+        categories: [
+          { id: crypto.randomUUID(), name: "주거", budget: 1200000 },
+          { id: crypto.randomUUID(), name: "식비", budget: 600000 },
+          { id: crypto.randomUUID(), name: "생활", budget: 350000 },
+          { id: crypto.randomUUID(), name: "교통", budget: 180000 },
+          { id: crypto.randomUUID(), name: "의료", budget: 120000 },
+        ],
+        templates: [],
+        settings: structuredClone(DEFAULT_SETTINGS),
+        lastAutoFixBackup: null,
+        rules: [],
+        transactions: [],
+      };
+
+      const state = loadData();
+
+      const els = {
+        tabs: [...document.querySelectorAll(".tab-btn")],
+        sections: [...document.querySelectorAll(".section")],
+        sumBudget: document.getElementById("sumBudget"),
+        sumActual: document.getElementById("sumActual"),
+        sumOver: document.getElementById("sumOver"),
+        sumUnplanned: document.getElementById("sumUnplanned"),
+        sumForecast: document.getElementById("sumForecast"),
+        sumForecastOver: document.getElementById("sumForecastOver"),
+        sumMoMChange: document.getElementById("sumMoMChange"),
+        forecastHint: document.getElementById("forecastHint"),
+        dashboardMonthFilter: document.getElementById("dashboardMonthFilter"),
+        resetDashboardMonthBtn: document.getElementById("resetDashboardMonthBtn"),
+        dashboardMonthLabel: document.getElementById("dashboardMonthLabel"),
+        monthlyTrendChart: document.getElementById("monthlyTrendChart"),
+        monthlyTrendTooltip: document.getElementById("monthlyTrendTooltip"),
+        monthlyTrendLegend: document.getElementById("monthlyTrendLegend"),
+        alertCenter: document.getElementById("alertCenter"),
+        categoryProgress: document.getElementById("categoryProgress"),
+        topUnplanned: document.getElementById("topUnplanned"),
+        txForm: document.getElementById("txForm"),
+        date: document.getElementById("date"),
+        merchant: document.getElementById("merchant"),
+        totalAmount: document.getElementById("totalAmount"),
+        itemsWrap: document.getElementById("itemsWrap"),
+        addItemRow: document.getElementById("addItemRow"),
+        itemsTotal: document.getElementById("itemsTotal"),
+        validationMsg: document.getElementById("validationMsg"),
+        recentTransactions: document.getElementById("recentTransactions"),
+        formTitle: document.getElementById("formTitle"),
+        submitTxBtn: document.getElementById("submitTxBtn"),
+        cancelEditBtn: document.getElementById("cancelEditBtn"),
+        csvFile: document.getElementById("csvFile"),
+        importCsvBtn: document.getElementById("importCsvBtn"),
+        csvImportMsg: document.getElementById("csvImportMsg"),
+        editNotice: document.getElementById("editNotice"),
+        recentSearch: document.getElementById("recentSearch"),
+        recentCategoryFilter: document.getElementById("recentCategoryFilter"),
+        recentPlannedFilter: document.getElementById("recentPlannedFilter"),
+        recentMonthFilter: document.getElementById("recentMonthFilter"),
+        recentMinAmount: document.getElementById("recentMinAmount"),
+        recentMaxAmount: document.getElementById("recentMaxAmount"),
+        recentSort: document.getElementById("recentSort"),
+        resetRecentFilters: document.getElementById("resetRecentFilters"),
+        recentToggleAll: document.getElementById("recentToggleAll"),
+        recentPrevPage: document.getElementById("recentPrevPage"),
+        recentNextPage: document.getElementById("recentNextPage"),
+        recentPageInfo: document.getElementById("recentPageInfo"),
+        recentCount: document.getElementById("recentCount"),
+        recentFilterMsg: document.getElementById("recentFilterMsg"),
+        recentActionMsg: document.getElementById("recentActionMsg"),
+        settingsForm: document.getElementById("settingsForm"),
+        settingDuplicatePolicy: document.getElementById("settingDuplicatePolicy"),
+        settingDefaultKeyword: document.getElementById("settingDefaultKeyword"),
+        settingDefaultCategory: document.getElementById("settingDefaultCategory"),
+        settingWarnPercent: document.getElementById("settingWarnPercent"),
+        settingOverPercent: document.getElementById("settingOverPercent"),
+        settingUnplannedPercent: document.getElementById("settingUnplannedPercent"),
+        settingGrowthPercent: document.getElementById("settingGrowthPercent"),
+        resetSettingsBtn: document.getElementById("resetSettingsBtn"),
+        exportSettingsBtn: document.getElementById("exportSettingsBtn"),
+        importSettingsBtn: document.getElementById("importSettingsBtn"),
+        importSettingsFile: document.getElementById("importSettingsFile"),
+        exportAllDataBtn: document.getElementById("exportAllDataBtn"),
+        importAllDataBtn: document.getElementById("importAllDataBtn"),
+        importAllDataFile: document.getElementById("importAllDataFile"),
+        loadDemoDataBtn: document.getElementById("loadDemoDataBtn"),
+        settingsMsg: document.getElementById("settingsMsg"),
+        runHealthCheckBtn: document.getElementById("runHealthCheckBtn"),
+        previewAutoFixBtn: document.getElementById("previewAutoFixBtn"),
+        autoFixHealthBtn: document.getElementById("autoFixHealthBtn"),
+        undoAutoFixBtn: document.getElementById("undoAutoFixBtn"),
+        healthSummary: document.getElementById("healthSummary"),
+        healthFindings: document.getElementById("healthFindings"),
+        categoryForm: document.getElementById("categoryForm"),
+        templateForm: document.getElementById("templateForm"),
+        tplName: document.getElementById("tplName"),
+        tplMerchant: document.getElementById("tplMerchant"),
+        tplAmount: document.getElementById("tplAmount"),
+        tplDay: document.getElementById("tplDay"),
+        tplCategory: document.getElementById("tplCategory"),
+        tplPlanned: document.getElementById("tplPlanned"),
+        templateList: document.getElementById("templateList"),
+        catName: document.getElementById("catName"),
+        catBudget: document.getElementById("catBudget"),
+        categoryList: document.getElementById("categoryList"),
+        ruleForm: document.getElementById("ruleForm"),
+        ruleKeyword: document.getElementById("ruleKeyword"),
+        ruleCategory: document.getElementById("ruleCategory"),
+        ruleList: document.getElementById("ruleList"),
+        monthFilter: document.getElementById("monthFilter"),
+        onlyUnplanned: document.getElementById("onlyUnplanned"),
+        resetFilters: document.getElementById("resetFilters"),
+        reportTable: document.getElementById("reportTable"),
+      };
+      let editingTxId = null;
+      let recentPage = 1;
+      const RECENT_PAGE_SIZE = 10;
+      let recentShowAll = false;
+      let isSyncingMonthFilters = false;
+
+      wireEvents();
+      initDefaults();
+      renderAll();
+      registerServiceWorker();
+
+      function initDefaults() {
+        if (!els.date.value) {
+          els.date.value = toDateInput(new Date());
+        }
+        if (!els.monthFilter.value) {
+          els.monthFilter.value = toMonthInput(new Date());
+        }
+        if (!els.dashboardMonthFilter.value) {
+          els.dashboardMonthFilter.value = toMonthInput(new Date());
+        }
+        if (!els.recentMonthFilter.value) {
+          els.recentMonthFilter.value = toMonthInput(new Date());
+        }
+        if (!els.recentSort.value) {
+          els.recentSort.value = "latest";
+        }
+        if (!els.tplDay.value) {
+          els.tplDay.value = "1";
+        }
+        if (!els.itemsWrap.querySelector(".row")) {
+          addItemRow({ name: "", amount: 0, categoryId: "", isPlanned: true });
+        }
+        applyDefaultPolicyRules();
+      }
+
+      function applyDefaultPolicyRules() {
+        const keyword = String(state.settings.defaultMerchantKeyword || "").trim();
+        if (!keyword) return;
+        const categoryName = String(state.settings.defaultMerchantCategoryName || "").trim();
+        const category = state.categories.find((c) => c.name.trim() === categoryName);
+        if (!category) return;
+        const sameKeywordRule = state.rules.find((r) => r.keyword.trim().toLowerCase() === keyword.toLowerCase());
+        if (sameKeywordRule) {
+          if (sameKeywordRule.categoryId !== category.id) {
+            sameKeywordRule.categoryId = category.id;
+            saveData();
+          }
+          return;
+        }
+        state.rules.unshift({
+          id: crypto.randomUUID(),
+          keyword,
+          categoryId: category.id,
+        });
+        saveData();
+      }
+
+      function onSubmitSettings(e) {
+        e.preventDefault();
+        const duplicatePolicy = els.settingDuplicatePolicy.value;
+        const defaultMerchantKeyword = els.settingDefaultKeyword.value.trim();
+        const defaultMerchantCategoryId = els.settingDefaultCategory.value;
+        const defaultMerchantCategoryName = defaultMerchantCategoryId
+          ? getCategoryName(defaultMerchantCategoryId)
+          : "";
+        const thresholdWarnPct = Number(els.settingWarnPercent.value || DEFAULT_SETTINGS.thresholdWarnPct);
+        const thresholdOverPct = Number(els.settingOverPercent.value || DEFAULT_SETTINGS.thresholdOverPct);
+        const thresholdUnplannedPct = Number(
+          els.settingUnplannedPercent.value || DEFAULT_SETTINGS.thresholdUnplannedPct
+        );
+        const thresholdGrowthPct = Number(els.settingGrowthPercent.value || DEFAULT_SETTINGS.thresholdGrowthPct);
+
+        if (thresholdWarnPct > thresholdOverPct) {
+          els.settingsMsg.textContent = "예산 경고 임계치(%)는 예산 초과 임계치(%)보다 클 수 없습니다.";
+          return;
+        }
+
+        state.settings = {
+          duplicatePolicy,
+          defaultMerchantKeyword,
+          defaultMerchantCategoryName,
+          thresholdWarnPct,
+          thresholdOverPct,
+          thresholdUnplannedPct,
+          thresholdGrowthPct,
+        };
+        saveData();
+        applyDefaultPolicyRules();
+        els.settingsMsg.textContent = "설정이 저장되었습니다.";
+        renderAll();
+      }
+
+      function onResetSettings() {
+        state.settings = structuredClone(DEFAULT_SETTINGS);
+        saveData();
+        applyDefaultPolicyRules();
+        els.settingsMsg.textContent = "기본값으로 복원되었습니다.";
+        renderAll();
+      }
+
+      function onExportSettings() {
+        const payload = {
+          exportedAt: new Date().toISOString(),
+          version: 1,
+          settings: { ...DEFAULT_SETTINGS, ...(state.settings || {}) },
+        };
+        const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `expense-settings-${toDateInput(new Date())}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        els.settingsMsg.textContent = "설정 내보내기를 완료했습니다.";
+      }
+
+      async function onImportSettingsFile(e) {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        try {
+          const text = await file.text();
+          const parsed = JSON.parse(text);
+          const incoming = parsed?.settings || parsed;
+          if (!incoming || typeof incoming !== "object") {
+            throw new Error("invalid settings");
+          }
+
+          const nextSettings = {
+            ...DEFAULT_SETTINGS,
+            ...incoming,
+          };
+          if (Number(nextSettings.thresholdWarnPct) > Number(nextSettings.thresholdOverPct)) {
+            els.settingsMsg.textContent = "가져오기 실패: 경고 임계치가 초과 임계치보다 큽니다.";
+            return;
+          }
+
+          state.settings = nextSettings;
+          saveData();
+          applyDefaultPolicyRules();
+          els.settingsMsg.textContent = "설정 가져오기를 완료했습니다.";
+          renderAll();
+        } catch {
+          els.settingsMsg.textContent = "설정 파일을 읽지 못했습니다. JSON 형식을 확인해주세요.";
+        } finally {
+          els.importSettingsFile.value = "";
+        }
+      }
+
+      function onExportAllData() {
+        const payload = {
+          exportedAt: new Date().toISOString(),
+          version: 1,
+          type: "full_data_backup",
+          data: structuredClone(state),
+        };
+        const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `expense-full-backup-${toDateInput(new Date())}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        els.settingsMsg.textContent = "전체 데이터 내보내기를 완료했습니다.";
+      }
+
+      async function onImportAllDataFile(e) {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        try {
+          const text = await file.text();
+          const parsed = JSON.parse(text);
+          const incoming = parsed?.data || parsed;
+          if (!incoming || typeof incoming !== "object") {
+            throw new Error("invalid full backup");
+          }
+          const ok = confirm("전체 데이터를 가져오면 현재 데이터가 덮어써집니다. 계속할까요?");
+          if (!ok) return;
+
+          const nextSettings = {
+            ...DEFAULT_SETTINGS,
+            ...(incoming.settings && typeof incoming.settings === "object" ? incoming.settings : {}),
+          };
+          if (Number(nextSettings.thresholdWarnPct) > Number(nextSettings.thresholdOverPct)) {
+            els.settingsMsg.textContent = "가져오기 실패: 경고 임계치가 초과 임계치보다 큽니다.";
+            return;
+          }
+
+          state.categories = Array.isArray(incoming.categories) ? incoming.categories : [];
+          state.templates = Array.isArray(incoming.templates) ? incoming.templates : [];
+          state.rules = Array.isArray(incoming.rules) ? incoming.rules : [];
+          state.transactions = Array.isArray(incoming.transactions)
+            ? incoming.transactions.sort((a, b) => String(b?.date || "").localeCompare(String(a?.date || "")))
+            : [];
+          state.settings = nextSettings;
+          state.lastAutoFixBackup = incoming.lastAutoFixBackup || null;
+
+          saveData();
+          applyDefaultPolicyRules();
+          renderAll();
+          els.settingsMsg.textContent = "전체 데이터 가져오기를 완료했습니다.";
+        } catch {
+          els.settingsMsg.textContent = "전체 데이터 파일을 읽지 못했습니다. JSON 형식을 확인해주세요.";
+        } finally {
+          els.importAllDataFile.value = "";
+        }
+      }
+
+      function onLoadDemoData() {
+        const ok = confirm("현재 데이터를 예시 데이터로 교체할까요? (기존 데이터는 덮어써집니다)");
+        if (!ok) return;
+
+        const categories = [
+          { id: crypto.randomUUID(), name: "주거", budget: 1200000 },
+          { id: crypto.randomUUID(), name: "식비", budget: 650000 },
+          { id: crypto.randomUUID(), name: "생활", budget: 400000 },
+          { id: crypto.randomUUID(), name: "교통", budget: 200000 },
+          { id: crypto.randomUUID(), name: "의료", budget: 150000 },
+        ];
+        const cat = Object.fromEntries(categories.map((c) => [c.name, c.id]));
+        const item = (name, amount, categoryName, isPlanned = true, source = "manual") => ({
+          id: crypto.randomUUID(),
+          name,
+          amount,
+          categoryId: cat[categoryName] || "",
+          isPlanned,
+          classificationSource: source,
+        });
+        const tx = (date, merchant, items) => ({
+          id: crypto.randomUUID(),
+          date,
+          merchant,
+          totalAmount: items.reduce((acc, x) => acc + x.amount, 0),
+          items,
+        });
+
+        const templates = [
+          {
+            id: crypto.randomUUID(),
+            name: "월세",
+            merchant: "집주인",
+            amount: 850000,
+            day: 5,
+            categoryId: cat["주거"],
+            isPlanned: true,
+          },
+          {
+            id: crypto.randomUUID(),
+            name: "관리비",
+            merchant: "아파트관리사무소",
+            amount: 180000,
+            day: 10,
+            categoryId: cat["주거"],
+            isPlanned: true,
+          },
+          {
+            id: crypto.randomUUID(),
+            name: "실손보험",
+            merchant: "보험사",
+            amount: 92000,
+            day: 20,
+            categoryId: cat["의료"],
+            isPlanned: true,
+          },
+        ];
+
+        const transactions = [
+          tx("2026-01-02", "이마트", [item("장보기", 84000, "식비"), item("주방세제", 11000, "생활")]),
+          tx("2026-01-03", "스타벅스", [item("커피", 5600, "식비", false, "rule")]),
+          tx("2026-01-05", "집주인", [item("월세", 850000, "주거", true, "template")]),
+          tx("2026-01-07", "버스카드", [item("대중교통", 38000, "교통")]),
+          tx("2026-01-10", "아파트관리사무소", [item("관리비", 180000, "주거", true, "template")]),
+          tx("2026-01-12", "쿠팡", [item("욕실용품", 42900, "생활", true, "rule")]),
+          tx("2026-01-14", "정형외과", [item("진료비", 37000, "의료")]),
+          tx("2026-01-18", "올리브영", [item("스킨케어", 31500, "생활", false)]),
+          tx("2026-01-20", "보험사", [item("실손보험", 92000, "의료", true, "template")]),
+          tx("2026-01-23", "배달의민족", [item("치킨", 24000, "식비", false, "suggested")]),
+          tx("2026-01-27", "주유소", [item("주유", 78000, "교통")]),
+          tx("2026-01-29", "약국", [item("상비약", 12800, "의료")]),
+          tx("2026-02-01", "이마트", [item("장보기", 91000, "식비"), item("휴지", 17000, "생활")]),
+          tx("2026-02-03", "스타벅스", [item("커피", 6100, "식비", false, "rule")]),
+          tx("2026-02-05", "집주인", [item("월세", 850000, "주거", true, "template")]),
+          tx("2026-02-06", "지하철", [item("교통비", 42000, "교통")]),
+          tx("2026-02-08", "쿠팡", [item("주방용품", 28600, "생활", true, "rule")]),
+          tx("2026-02-10", "아파트관리사무소", [item("관리비", 180000, "주거", true, "template")]),
+          tx("2026-02-12", "정형외과", [item("재진", 26000, "의료")]),
+          tx("2026-02-14", "배달의민족", [item("피자", 31900, "식비", false, "suggested")]),
+          tx("2026-02-15", "다이소", [item("생활소품", 15000, "생활")]),
+          tx("2026-02-17", "약국", [item("감기약", 9800, "의료")]),
+          tx("2026-02-20", "보험사", [item("실손보험", 92000, "의료", true, "template")]),
+          tx("2026-02-21", "미분류상점", [item("기타결제", 22000, "", false, "unclassified")]),
+        ];
+
+        state.categories = categories;
+        state.templates = templates;
+        state.rules = [
+          { id: crypto.randomUUID(), keyword: "쿠팡", categoryId: cat["생활"] },
+          { id: crypto.randomUUID(), keyword: "스타벅스", categoryId: cat["식비"] },
+          { id: crypto.randomUUID(), keyword: "배달", categoryId: cat["식비"] },
+        ];
+        state.transactions = transactions.sort((a, b) => b.date.localeCompare(a.date));
+        state.lastAutoFixBackup = null;
+        if (!state.settings) state.settings = structuredClone(DEFAULT_SETTINGS);
+
+        saveData();
+        renderAll();
+        openTab("dashboard");
+        els.settingsMsg.textContent = "예시 데이터 로딩 완료: 2개월치 샘플 데이터가 입력되었습니다.";
+      }
+
+      function wireEvents() {
+        els.tabs.forEach((btn) => {
+          btn.addEventListener("click", () => {
+            openTab(btn.dataset.tab);
+          });
+        });
+
+        els.addItemRow.addEventListener("click", () =>
+          addItemRow({ name: "", amount: 0, categoryId: "", isPlanned: true })
+        );
+        els.itemsWrap.addEventListener("input", updateItemsTotalView);
+        els.itemsWrap.addEventListener("change", updateItemsTotalView);
+        els.itemsWrap.addEventListener("click", onItemRowAction);
+        els.txForm.addEventListener("submit", onSubmitTransaction);
+        els.cancelEditBtn.addEventListener("click", resetTransactionForm);
+        els.importCsvBtn.addEventListener("click", onImportCsv);
+        els.recentTransactions.addEventListener("click", onRecentTransactionAction);
+        els.recentSearch.addEventListener("input", onRecentFilterChanged);
+        els.recentCategoryFilter.addEventListener("change", onRecentFilterChanged);
+        els.recentPlannedFilter.addEventListener("change", onRecentFilterChanged);
+        els.recentMonthFilter.addEventListener("change", onRecentFilterChanged);
+        els.recentMinAmount.addEventListener("input", onRecentFilterChanged);
+        els.recentMaxAmount.addEventListener("input", onRecentFilterChanged);
+        els.recentSort.addEventListener("change", onRecentFilterChanged);
+        els.resetRecentFilters.addEventListener("click", resetRecentFilterForm);
+        els.recentToggleAll.addEventListener("click", toggleRecentShowAll);
+        els.recentPrevPage.addEventListener("click", () => changeRecentPage(-1));
+        els.recentNextPage.addEventListener("click", () => changeRecentPage(1));
+        els.monthlyTrendChart.addEventListener("pointermove", onMonthlyTrendPointerMove);
+        els.monthlyTrendChart.addEventListener("pointerleave", hideMonthlyTrendTooltip);
+        els.monthlyTrendChart.addEventListener("click", onMonthlyTrendChartClick);
+
+        els.categoryForm.addEventListener("submit", onSubmitCategory);
+        els.templateForm.addEventListener("submit", onSubmitTemplate);
+        els.templateList.addEventListener("click", onDeleteTemplate);
+        els.ruleForm.addEventListener("submit", onSubmitRule);
+        els.settingsForm.addEventListener("submit", onSubmitSettings);
+        els.resetSettingsBtn.addEventListener("click", onResetSettings);
+        els.exportSettingsBtn.addEventListener("click", onExportSettings);
+        els.importSettingsBtn.addEventListener("click", () => els.importSettingsFile.click());
+        els.importSettingsFile.addEventListener("change", onImportSettingsFile);
+        els.exportAllDataBtn.addEventListener("click", onExportAllData);
+        els.importAllDataBtn.addEventListener("click", () => els.importAllDataFile.click());
+        els.importAllDataFile.addEventListener("change", onImportAllDataFile);
+        els.loadDemoDataBtn.addEventListener("click", onLoadDemoData);
+        els.runHealthCheckBtn.addEventListener("click", renderHealthCheck);
+        els.previewAutoFixBtn.addEventListener("click", onPreviewAutoFixHealth);
+        els.autoFixHealthBtn.addEventListener("click", onAutoFixHealth);
+        els.undoAutoFixBtn.addEventListener("click", onUndoAutoFix);
+        els.categoryList.addEventListener("click", onDeleteCategory);
+        els.ruleList.addEventListener("click", onDeleteRule);
+
+        els.monthFilter.addEventListener("change", () => {
+          if (!isSyncingMonthFilters) {
+            isSyncingMonthFilters = true;
+            els.dashboardMonthFilter.value = els.monthFilter.value || toMonthInput(new Date());
+            isSyncingMonthFilters = false;
+          }
+          renderReport();
+          if (!isSyncingMonthFilters) renderDashboard();
+        });
+        els.onlyUnplanned.addEventListener("change", renderReport);
+        els.dashboardMonthFilter.addEventListener("change", () => {
+          if (!isSyncingMonthFilters) {
+            isSyncingMonthFilters = true;
+            els.monthFilter.value = els.dashboardMonthFilter.value || toMonthInput(new Date());
+            isSyncingMonthFilters = false;
+          }
+          renderDashboard();
+          if (!isSyncingMonthFilters) renderReport();
+        });
+        els.resetDashboardMonthBtn.addEventListener("click", () => {
+          const nowMonth = toMonthInput(new Date());
+          els.dashboardMonthFilter.value = nowMonth;
+          els.monthFilter.value = nowMonth;
+          renderDashboard();
+          renderReport();
+        });
+        els.resetFilters.addEventListener("click", () => {
+          const nowMonth = toMonthInput(new Date());
+          els.monthFilter.value = nowMonth;
+          els.dashboardMonthFilter.value = nowMonth;
+          els.onlyUnplanned.checked = false;
+          renderReport();
+          renderDashboard();
+        });
+      }
+
+      function openTab(tabId) {
+        els.tabs.forEach((b) => b.classList.remove("active"));
+        els.sections.forEach((s) => s.classList.remove("active"));
+        const button = els.tabs.find((b) => b.dataset.tab === tabId);
+        if (!button) return;
+        button.classList.add("active");
+        document.getElementById(tabId).classList.add("active");
+      }
+
+      function loadData() {
+        try {
+          const raw = localStorage.getItem(STORE_KEY);
+          if (!raw) return structuredClone(defaultData);
+          const parsed = JSON.parse(raw);
+          return {
+            categories: parsed.categories || structuredClone(defaultData.categories),
+            templates: parsed.templates || [],
+            settings: { ...structuredClone(DEFAULT_SETTINGS), ...(parsed.settings || {}) },
+            lastAutoFixBackup: parsed.lastAutoFixBackup || null,
+            rules: parsed.rules || [],
+            transactions: parsed.transactions || [],
+          };
+        } catch {
+          return structuredClone(defaultData);
+        }
+      }
+
+      function saveData() {
+        localStorage.setItem(STORE_KEY, JSON.stringify(state));
+      }
+
+      function formatWon(amount) {
+        return `${Number(amount || 0).toLocaleString("ko-KR")}원`;
+      }
+
+      function toDateInput(d) {
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, "0");
+        const date = String(d.getDate()).padStart(2, "0");
+        return `${year}-${month}-${date}`;
+      }
+
+      function toMonthInput(d) {
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, "0");
+        return `${year}-${month}`;
+      }
+
+      function createCategoryOptions(selectedId = "") {
+        const options = ['<option value="">자동 분류 사용</option>']
+          .concat(
+            state.categories.map(
+              (c) =>
+                `<option value="${c.id}" ${c.id === selectedId ? "selected" : ""}>${escapeHtml(c.name)}</option>`
+            )
+          )
+          .join("");
+        return options;
+      }
+
+      function addItemRow(item) {
+        const row = document.createElement("div");
+        row.className = "row cols-4";
+        row.innerHTML = `
+          <input data-field="name" type="text" placeholder="항목명" value="${escapeHtml(item.name || "")}" required />
+          <input data-field="amount" type="number" min="0" step="1" value="${Number(item.amount || 0)}" required />
+          <select data-field="categoryId">${createCategoryOptions(item.categoryId || "")}</select>
+          <button type="button" class="btn danger" data-action="remove">삭제</button>
+          <label><input data-field="isPlanned" type="checkbox" ${item.isPlanned !== false ? "checked" : ""} /> 계획된 지출</label>
+        `;
+        els.itemsWrap.appendChild(row);
+        updateItemsTotalView();
+      }
+
+      function onItemRowAction(e) {
+        const button = e.target.closest("button[data-action='remove']");
+        if (!button) return;
+        const rows = els.itemsWrap.querySelectorAll(".row");
+        if (rows.length <= 1) return;
+        button.closest(".row").remove();
+        updateItemsTotalView();
+      }
+
+      function collectItems() {
+        return [...els.itemsWrap.querySelectorAll(".row")].map((row) => {
+          const name = row.querySelector("[data-field='name']").value.trim();
+          const amount = Number(row.querySelector("[data-field='amount']").value || 0);
+          const categoryId = row.querySelector("[data-field='categoryId']").value;
+          const isPlanned = row.querySelector("[data-field='isPlanned']").checked;
+          return { id: crypto.randomUUID(), name, amount, categoryId, isPlanned };
+        });
+      }
+
+      function updateItemsTotalView() {
+        const items = collectItems();
+        const sum = items.reduce((acc, it) => acc + Number(it.amount || 0), 0);
+        const total = Number(els.totalAmount.value || 0);
+        els.itemsTotal.textContent = formatWon(sum);
+        if (!total) {
+          els.validationMsg.textContent = "";
+          return;
+        }
+        if (sum === total) {
+          els.validationMsg.textContent = "합계가 총 결제금액과 일치합니다.";
+          els.validationMsg.classList.remove("danger");
+        } else {
+          els.validationMsg.textContent = `합계 차이: ${formatWon(total - sum)} (${sum > total ? "초과" : "부족"})`;
+          els.validationMsg.classList.add("danger");
+        }
+      }
+
+      function applyRule(merchant, itemName) {
+        const target = `${merchant} ${itemName}`.toLowerCase();
+        const found = state.rules.find((r) => target.includes(r.keyword.toLowerCase()));
+        return found ? found.categoryId : "";
+      }
+
+      function applyRuleFromData(dataState, merchant, itemName) {
+        const target = `${merchant} ${itemName}`.toLowerCase();
+        const found = dataState.rules.find((r) => target.includes(r.keyword.toLowerCase()));
+        return found ? found.categoryId : "";
+      }
+
+      function suggestCategoryByHistory(merchant, itemName) {
+        const merchantKey = String(merchant || "").trim().toLowerCase();
+        const itemKey = String(itemName || "").trim().toLowerCase();
+        if (!merchantKey && !itemKey) return "";
+
+        const score = new Map();
+        state.transactions.forEach((tx) => {
+          const txMerchant = String(tx.merchant || "").trim().toLowerCase();
+          tx.items.forEach((it) => {
+            if (!it.categoryId) return;
+            const txItem = String(it.name || "").trim().toLowerCase();
+            let weight = 0;
+            if (merchantKey && txMerchant === merchantKey) weight += 4;
+            if (itemKey && txItem === itemKey) weight += 3;
+            if (merchantKey && txMerchant.includes(merchantKey)) weight += 1;
+            if (itemKey && txItem.includes(itemKey)) weight += 1;
+            if (weight > 0) {
+              score.set(it.categoryId, (score.get(it.categoryId) || 0) + weight);
+            }
+          });
+        });
+
+        let bestCategoryId = "";
+        let bestScore = 0;
+        score.forEach((s, categoryId) => {
+          if (s > bestScore) {
+            bestScore = s;
+            bestCategoryId = categoryId;
+          }
+        });
+        return bestCategoryId;
+      }
+
+      function suggestCategoryByHistoryFromData(dataState, merchant, itemName) {
+        const merchantKey = String(merchant || "").trim().toLowerCase();
+        const itemKey = String(itemName || "").trim().toLowerCase();
+        if (!merchantKey && !itemKey) return "";
+
+        const score = new Map();
+        dataState.transactions.forEach((tx) => {
+          const txMerchant = String(tx.merchant || "").trim().toLowerCase();
+          tx.items.forEach((it) => {
+            if (!it.categoryId) return;
+            const txItem = String(it.name || "").trim().toLowerCase();
+            let weight = 0;
+            if (merchantKey && txMerchant === merchantKey) weight += 4;
+            if (itemKey && txItem === itemKey) weight += 3;
+            if (merchantKey && txMerchant.includes(merchantKey)) weight += 1;
+            if (itemKey && txItem.includes(itemKey)) weight += 1;
+            if (weight > 0) {
+              score.set(it.categoryId, (score.get(it.categoryId) || 0) + weight);
+            }
+          });
+        });
+
+        let bestCategoryId = "";
+        let bestScore = 0;
+        score.forEach((s, categoryId) => {
+          if (s > bestScore) {
+            bestScore = s;
+            bestCategoryId = categoryId;
+          }
+        });
+        return bestCategoryId;
+      }
+
+      function resolveCategoryDecision(merchant, itemName, explicitCategoryId = "") {
+        return resolveCategoryDecisionFromData(state, merchant, itemName, explicitCategoryId);
+      }
+
+      function resolveCategoryDecisionFromData(dataState, merchant, itemName, explicitCategoryId = "") {
+        if (explicitCategoryId) {
+          return { categoryId: explicitCategoryId, classificationSource: "manual" };
+        }
+        const byRule = applyRuleFromData(dataState, merchant, itemName);
+        if (byRule) {
+          return { categoryId: byRule, classificationSource: "rule" };
+        }
+        const byHistory = suggestCategoryByHistoryFromData(dataState, merchant, itemName);
+        if (byHistory) {
+          return { categoryId: byHistory, classificationSource: "suggested" };
+        }
+        return { categoryId: "", classificationSource: "unclassified" };
+      }
+
+      function onSubmitTransaction(e) {
+        e.preventDefault();
+        const items = collectItems();
+        const merchant = els.merchant.value.trim();
+        const totalAmount = Number(els.totalAmount.value || 0);
+        const date = els.date.value;
+        if (!merchant || !totalAmount || !date) return;
+
+        const itemSum = items.reduce((acc, it) => acc + it.amount, 0);
+        if (itemSum !== totalAmount) {
+          alert("세부 항목 합계가 총 결제금액과 일치해야 저장할 수 있습니다.");
+          return;
+        }
+
+        const normalizedItems = items.map((it) => {
+          const decision = resolveCategoryDecision(merchant, it.name, it.categoryId);
+          return {
+            ...it,
+            categoryId: decision.categoryId,
+            classificationSource: decision.classificationSource,
+          };
+        });
+
+        const nextTx = {
+          id: editingTxId || crypto.randomUUID(),
+          date,
+          merchant,
+          totalAmount,
+          items: normalizedItems,
+        };
+
+        if (editingTxId) {
+          const idx = state.transactions.findIndex((tx) => tx.id === editingTxId);
+          if (idx !== -1) {
+            state.transactions[idx] = nextTx;
+          } else {
+            state.transactions.unshift(nextTx);
+          }
+        } else {
+          state.transactions.unshift(nextTx);
+        }
+
+        saveData();
+        resetTransactionForm();
+        renderAll();
+      }
+
+      function onRecentTransactionAction(e) {
+        const saveRuleBtn = e.target.closest("button[data-action='save-rule']");
+        if (saveRuleBtn) {
+          saveRuleFromSuggested(saveRuleBtn.dataset.txId, saveRuleBtn.dataset.itemId);
+          return;
+        }
+        const editBtn = e.target.closest("button[data-action='edit']");
+        if (editBtn) {
+          startEditTransaction(editBtn.dataset.txId);
+          return;
+        }
+        const deleteBtn = e.target.closest("button[data-action='delete']");
+        if (!deleteBtn) return;
+        const txId = deleteBtn.dataset.txId;
+        const tx = state.transactions.find((x) => x.id === txId);
+        if (!tx) return;
+        const ok = confirm(`[${tx.date}] ${tx.merchant} ${formatWon(tx.totalAmount)} 내역을 삭제할까요?`);
+        if (!ok) return;
+        state.transactions = state.transactions.filter((x) => x.id !== txId);
+        if (editingTxId === txId) resetTransactionForm();
+        saveData();
+        renderAll();
+      }
+
+      function saveRuleFromSuggested(txId, itemId) {
+        const tx = state.transactions.find((x) => x.id === txId);
+        if (!tx) return;
+        const item = tx.items.find((it) => it.id === itemId);
+        if (!item || item.classificationSource !== "suggested") return;
+        if (!item.categoryId) {
+          els.recentActionMsg.textContent = "미분류 항목은 규칙 저장할 수 없습니다.";
+          return;
+        }
+
+        const keyword = String(tx.merchant || "").trim() || String(item.name || "").trim();
+        if (!keyword) {
+          els.recentActionMsg.textContent = "규칙 키워드를 만들 수 없습니다.";
+          return;
+        }
+
+        const sameKeywordRule = state.rules.find((r) => r.keyword.trim().toLowerCase() === keyword.toLowerCase());
+        if (sameKeywordRule && sameKeywordRule.categoryId === item.categoryId) {
+          els.recentActionMsg.textContent = `이미 같은 규칙이 있습니다: "${keyword}"`;
+          return;
+        }
+
+        if (sameKeywordRule && sameKeywordRule.categoryId !== item.categoryId) {
+          const ok = confirm(`"${keyword}" 키워드 규칙이 이미 있습니다. 새 카테고리로 추가할까요?`);
+          if (!ok) return;
+        }
+
+        state.rules.unshift({
+          id: crypto.randomUUID(),
+          keyword,
+          categoryId: item.categoryId,
+        });
+        item.classificationSource = "rule";
+        saveData();
+        els.recentActionMsg.textContent = `규칙 저장 완료: "${keyword}" -> ${getCategoryName(item.categoryId)}`;
+        renderAll();
+      }
+
+      function startEditTransaction(txId) {
+        const tx = state.transactions.find((x) => x.id === txId);
+        if (!tx) return;
+        openTab("add");
+        editingTxId = txId;
+        els.formTitle.textContent = "지출 수정";
+        els.submitTxBtn.textContent = "수정 저장";
+        els.cancelEditBtn.classList.remove("hidden");
+        els.editNotice.classList.remove("hidden");
+        els.editNotice.innerHTML = `<strong>수정 중:</strong> ${escapeHtml(tx.date)} · ${escapeHtml(tx.merchant)} · ${formatWon(
+          tx.totalAmount
+        )}`;
+        els.date.value = tx.date;
+        els.merchant.value = tx.merchant;
+        els.totalAmount.value = tx.totalAmount;
+        els.itemsWrap.innerHTML = "";
+        tx.items.forEach((it) =>
+          addItemRow({
+            name: it.name,
+            amount: it.amount,
+            categoryId: state.categories.some((c) => c.id === it.categoryId) ? it.categoryId : "",
+            isPlanned: it.isPlanned !== false,
+          })
+        );
+        updateItemsTotalView();
+        document.getElementById("add").scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+
+      function resetTransactionForm() {
+        editingTxId = null;
+        els.formTitle.textContent = "지출 입력 (분할 포함)";
+        els.submitTxBtn.textContent = "저장";
+        els.cancelEditBtn.classList.add("hidden");
+        els.editNotice.classList.add("hidden");
+        els.editNotice.textContent = "";
+        els.txForm.reset();
+        els.date.value = toDateInput(new Date());
+        els.itemsWrap.innerHTML = "";
+        addItemRow({ name: "", amount: 0, categoryId: "", isPlanned: true });
+        els.validationMsg.textContent = "";
+      }
+
+      function resetRecentFilterForm() {
+        els.recentSearch.value = "";
+        els.recentCategoryFilter.value = "all";
+        els.recentPlannedFilter.value = "all";
+        els.recentMonthFilter.value = toMonthInput(new Date());
+        els.recentMinAmount.value = "";
+        els.recentMaxAmount.value = "";
+        els.recentSort.value = "latest";
+        recentShowAll = false;
+        recentPage = 1;
+        els.recentToggleAll.textContent = "전체 보기";
+        els.recentActionMsg.textContent = "";
+        renderRecentTransactions();
+      }
+
+      function onRecentFilterChanged() {
+        recentPage = 1;
+        renderRecentTransactions();
+      }
+
+      function toggleRecentShowAll() {
+        recentShowAll = !recentShowAll;
+        recentPage = 1;
+        els.recentToggleAll.textContent = recentShowAll ? "페이지 보기" : "전체 보기";
+        renderRecentTransactions();
+      }
+
+      function changeRecentPage(delta) {
+        if (recentShowAll) return;
+        recentPage = Math.max(1, recentPage + delta);
+        renderRecentTransactions();
+      }
+
+      function sortRecentTransactions(list) {
+        const sortBy = els.recentSort.value || "latest";
+        const sorted = [...list];
+        if (sortBy === "amount_desc") {
+          sorted.sort((a, b) => b.totalAmount - a.totalAmount || b.date.localeCompare(a.date));
+        } else if (sortBy === "amount_asc") {
+          sorted.sort((a, b) => a.totalAmount - b.totalAmount || b.date.localeCompare(a.date));
+        } else if (sortBy === "merchant_asc") {
+          sorted.sort((a, b) => a.merchant.localeCompare(b.merchant, "ko-KR") || b.date.localeCompare(a.date));
+        } else {
+          sorted.sort((a, b) => b.date.localeCompare(a.date));
+        }
+        return sorted;
+      }
+
+      function getRecentAmountRange() {
+        const minAmount = Number(els.recentMinAmount.value || 0);
+        const maxAmount = Number(els.recentMaxAmount.value || 0);
+        if (maxAmount > 0 && minAmount > maxAmount) {
+          return { isValid: false, minAmount, maxAmount };
+        }
+        return { isValid: true, minAmount, maxAmount };
+      }
+
+      function txMatchesRecentFilter(tx, amountRange) {
+        const query = els.recentSearch.value.trim().toLowerCase();
+        const month = els.recentMonthFilter.value;
+        const category = els.recentCategoryFilter.value;
+        const planned = els.recentPlannedFilter.value;
+        const { minAmount, maxAmount } = amountRange;
+
+        if (month && !tx.date.startsWith(month)) return false;
+        if (tx.totalAmount < minAmount) return false;
+        if (maxAmount > 0 && tx.totalAmount > maxAmount) return false;
+
+        if (query) {
+          const haystack = `${tx.merchant} ${tx.items.map((item) => item.name).join(" ")}`.toLowerCase();
+          if (!haystack.includes(query)) return false;
+        }
+
+        if (category !== "all") {
+          if (category === "unclassified") {
+            if (!tx.items.some((item) => !item.categoryId)) return false;
+          } else if (!tx.items.some((item) => item.categoryId === category)) {
+            return false;
+          }
+        }
+
+        if (planned === "planned" && !tx.items.every((item) => item.isPlanned !== false)) {
+          return false;
+        }
+        if (planned === "unplanned" && !tx.items.some((item) => item.isPlanned === false)) {
+          return false;
+        }
+        return true;
+      }
+
+      function getDaysInMonth(monthInput) {
+        const [year, month] = monthInput.split("-").map(Number);
+        return new Date(year, month, 0).getDate();
+      }
+
+      function getPreviousMonthInput(monthInput) {
+        const [year, month] = monthInput.split("-").map(Number);
+        const d = new Date(year, month - 2, 1);
+        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+      }
+
+      function getRecentMonths(baseMonth, count) {
+        const [year, month] = baseMonth.split("-").map(Number);
+        const months = [];
+        for (let i = count - 1; i >= 0; i -= 1) {
+          const d = new Date(year, month - 1 - i, 1);
+          months.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`);
+        }
+        return months;
+      }
+
+      function renderDashboardAlerts({ month, summary, monthItems, totalActual, forecastOver }) {
+        const alerts = [];
+        const prevMonth = getPreviousMonthInput(month);
+        const prevTotal = getMonthItems(prevMonth).reduce((acc, it) => acc + it.amount, 0);
+        const unplannedAmount = monthItems.filter((it) => !it.isPlanned).reduce((acc, it) => acc + it.amount, 0);
+        const unplannedRatio = totalActual > 0 ? unplannedAmount / totalActual : 0;
+        const warnRatio = (Number(state.settings.thresholdWarnPct) || DEFAULT_SETTINGS.thresholdWarnPct) / 100;
+        const overRatio = (Number(state.settings.thresholdOverPct) || DEFAULT_SETTINGS.thresholdOverPct) / 100;
+        const unplannedThreshold =
+          (Number(state.settings.thresholdUnplannedPct) || DEFAULT_SETTINGS.thresholdUnplannedPct) / 100;
+        const growthThreshold =
+          (Number(state.settings.thresholdGrowthPct) || DEFAULT_SETTINGS.thresholdGrowthPct) / 100;
+
+        summary.forEach((c) => {
+          if (!c.budget || c.name === "미분류") return;
+          const ratio = c.actual / c.budget;
+          if (ratio >= overRatio) {
+            alerts.push({
+              level: "high",
+              title: `${c.name} 예산 초과`,
+              body: `${formatWon(c.over)} 초과했습니다.`,
+            });
+          } else if (ratio >= warnRatio) {
+            alerts.push({
+              level: "mid",
+              title: `${c.name} 예산 ${Math.round(warnRatio * 100)}% 도달`,
+              body: `${formatWon(c.actual)} 사용 중입니다.`,
+            });
+          }
+        });
+
+        if (forecastOver > 0) {
+          alerts.push({
+            level: "high",
+            title: "월말 예상 초과",
+            body: `현재 추세 기준 ${formatWon(forecastOver)} 초과 예상입니다.`,
+          });
+        }
+
+        if (unplannedRatio >= unplannedThreshold && unplannedAmount > 0) {
+          alerts.push({
+            level: "mid",
+            title: "계획 외 지출 비중 높음",
+            body: `계획 외 지출이 총지출의 ${Math.round(unplannedRatio * 100)}% 입니다.`,
+          });
+        }
+
+        if (prevTotal > 0) {
+          const growth = (totalActual - prevTotal) / prevTotal;
+          if (growth >= growthThreshold) {
+            alerts.push({
+              level: "mid",
+              title: "전월 대비 지출 증가",
+              body: `${Math.round(growth * 100)}% 증가했습니다. (전월 ${formatWon(prevTotal)})`,
+            });
+          }
+        }
+
+        if (alerts.length === 0) {
+          els.alertCenter.textContent = "현재 기준 주의할 알림이 없습니다.";
+          return;
+        }
+
+        const sorted = alerts.sort((a, b) => {
+          const rank = { high: 0, mid: 1, low: 2 };
+          return rank[a.level] - rank[b.level];
+        });
+
+        els.alertCenter.innerHTML = sorted
+          .map(
+            (a) => `<div class="alert-row">
+              <div><span class="alert-tag ${a.level}">${a.level === "high" ? "높음" : a.level === "mid" ? "중간" : "낮음"}</span><strong>${escapeHtml(
+                a.title
+              )}</strong></div>
+              <div class="small">${escapeHtml(a.body)}</div>
+            </div>`
+          )
+          .join("");
+      }
+
+      function renderMonthlyTrend(baseMonth, totalBudget = 0) {
+        const months = getRecentMonths(baseMonth, 6);
+        let changed = false;
+        const data = months.map((month) => {
+          if (ensureTemplateGenerationForMonth(month)) changed = true;
+          const total = getMonthItems(month).reduce((acc, it) => acc + it.amount, 0);
+          return { month, total };
+        });
+        if (changed) saveData();
+
+        const width = 520;
+        const height = 180;
+        const padLeft = 36;
+        const padRight = 16;
+        const padTop = 18;
+        const padBottom = 28;
+        const innerW = width - padLeft - padRight;
+        const innerH = height - padTop - padBottom;
+        const maxValue = Math.max(1, ...data.map((d) => d.total), totalBudget);
+        const points = data.map((d, i) => {
+          const x = padLeft + (innerW * i) / Math.max(1, data.length - 1);
+          const y = padTop + innerH - (d.total / maxValue) * innerH;
+          return { ...d, x, y };
+        });
+
+        const polyline = points.map((p) => `${p.x},${p.y}`).join(" ");
+        const circles = points
+          .map(
+            (p) => `<circle class="trend-point-hit" cx="${p.x}" cy="${p.y}" r="14" fill="transparent" data-month="${p.month}" data-label="${p.month} · ${formatWon(p.total)}"></circle>
+            <circle cx="${p.x}" cy="${p.y}" r="4.5" fill="#0f7a64">
+              <title>${p.month} · ${formatWon(p.total)}</title>
+            </circle>`
+          )
+          .join("");
+        const labels = points
+          .map(
+            (p) =>
+              `<text x="${p.x}" y="${height - 8}" text-anchor="middle" font-size="11" fill="#5d6d68">${p.month.slice(5)}</text>`
+          )
+          .join("");
+        const budgetY = padTop + innerH - (Math.max(0, totalBudget) / maxValue) * innerH;
+        const budgetLine =
+          totalBudget > 0
+            ? `<line x1="${padLeft}" y1="${budgetY}" x2="${width - padRight}" y2="${budgetY}" stroke="#c4512d" stroke-width="2" stroke-dasharray="5 4" />`
+            : "";
+
+        const grid = [0, 0.5, 1]
+          .map((r) => {
+            const y = padTop + innerH - innerH * r;
+            const value = Math.round(maxValue * r);
+            return `<line x1="${padLeft}" y1="${y}" x2="${width - padRight}" y2="${y}" stroke="#e2e8e5" />
+                    <text x="4" y="${y + 4}" font-size="10" fill="#8a9893">${(value / 10000).toFixed(0)}만</text>`;
+          })
+          .join("");
+
+        els.monthlyTrendChart.innerHTML = `
+          <svg viewBox="0 0 ${width} ${height}" width="100%" role="img" aria-label="월별 지출 트렌드 그래프">
+            ${grid}
+            ${budgetLine}
+            <polyline points="${polyline}" fill="none" stroke="#0f7a64" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></polyline>
+            ${circles}
+            ${labels}
+          </svg>
+        `;
+        els.monthlyTrendLegend.innerHTML = data
+          .map((d) => `<span style="margin-right:10px">${d.month}: <strong>${formatWon(d.total)}</strong></span>`)
+          .join("") + (totalBudget > 0 ? `<span style="margin-right:10px">예산선: <strong>${formatWon(totalBudget)}</strong></span>` : "");
+      }
+
+      function onMonthlyTrendPointerMove(event) {
+        const svg = els.monthlyTrendChart.querySelector("svg");
+        if (!svg) return hideMonthlyTrendTooltip();
+
+        const nearest = findNearestTrendPoint(svg, event);
+        const minDist = nearest?.dist ?? Number.POSITIVE_INFINITY;
+        if (!nearest || minDist > 26) return hideMonthlyTrendTooltip();
+
+        const wrapRect = els.monthlyTrendChart.getBoundingClientRect();
+        const left = Math.min(wrapRect.width - 8, Math.max(8, event.clientX - wrapRect.left));
+        const top = Math.min(wrapRect.height - 8, Math.max(8, event.clientY - wrapRect.top));
+
+        els.monthlyTrendTooltip.textContent = nearest.label;
+        els.monthlyTrendTooltip.style.left = `${left}px`;
+        els.monthlyTrendTooltip.style.top = `${top}px`;
+        els.monthlyTrendTooltip.classList.add("show");
+      }
+
+      function onMonthlyTrendChartClick(event) {
+        const svg = els.monthlyTrendChart.querySelector("svg");
+        if (!svg) return;
+        const nearest = findNearestTrendPoint(svg, event);
+        const minDist = nearest?.dist ?? Number.POSITIVE_INFINITY;
+        if (!nearest || minDist > 26 || !nearest.month) return;
+
+        const targetMonth = nearest.month;
+        isSyncingMonthFilters = true;
+        els.dashboardMonthFilter.value = targetMonth;
+        els.monthFilter.value = targetMonth;
+        els.recentMonthFilter.value = targetMonth;
+        isSyncingMonthFilters = false;
+
+        renderDashboard();
+        renderReport();
+        renderRecentTransactions();
+      }
+
+      function findNearestTrendPoint(svg, event) {
+        const points = [...svg.querySelectorAll(".trend-point-hit")].map((node) => {
+          const x = Number(node.getAttribute("cx") || 0);
+          const y = Number(node.getAttribute("cy") || 0);
+          const label = node.dataset.label || "";
+          const month = node.dataset.month || "";
+          return { x, y, label, month };
+        });
+        if (!points.length) return null;
+
+        const svgRect = svg.getBoundingClientRect();
+        const pointerX = ((event.clientX - svgRect.left) / Math.max(1, svgRect.width)) * svg.viewBox.baseVal.width;
+        const pointerY = ((event.clientY - svgRect.top) / Math.max(1, svgRect.height)) * svg.viewBox.baseVal.height;
+
+        let nearest = null;
+        let minDist = Number.POSITIVE_INFINITY;
+        for (const p of points) {
+          const dist = Math.hypot(pointerX - p.x, pointerY - p.y);
+          if (dist < minDist) {
+            minDist = dist;
+            nearest = { ...p, dist };
+          }
+        }
+        return nearest;
+      }
+
+      function hideMonthlyTrendTooltip() {
+        els.monthlyTrendTooltip.classList.remove("show");
+      }
+
+      function ensureTemplateGenerationForMonth(monthInput) {
+        if (!monthInput || !/^\d{4}-\d{2}$/.test(monthInput)) return false;
+        if (!state.templates.length) return false;
+        let changed = false;
+        const maxDay = getDaysInMonth(monthInput);
+
+        state.templates.forEach((tpl) => {
+          const exists = state.transactions.some(
+            (tx) => tx.sourceTemplateId === tpl.id && tx.date.startsWith(monthInput)
+          );
+          if (exists) return;
+
+          const day = Math.min(Math.max(Number(tpl.day || 1), 1), maxDay);
+          const date = `${monthInput}-${String(day).padStart(2, "0")}`;
+          const amount = Number(tpl.amount || 0);
+          if (amount <= 0) return;
+
+          state.transactions.push({
+            id: crypto.randomUUID(),
+            date,
+            merchant: tpl.merchant || "고정지출",
+            totalAmount: amount,
+            sourceTemplateId: tpl.id,
+            items: [
+              {
+                id: crypto.randomUUID(),
+                name: tpl.name || "고정지출",
+                amount,
+                categoryId: tpl.categoryId || "",
+                classificationSource: "template",
+                isPlanned: tpl.isPlanned !== false,
+              },
+            ],
+          });
+          changed = true;
+        });
+
+        return changed;
+      }
+
+      function ensureTemplateTransactions() {
+        const months = new Set(
+          [toMonthInput(new Date()), els.dashboardMonthFilter.value, els.monthFilter.value, els.recentMonthFilter.value].filter(
+            Boolean
+          )
+        );
+        let changed = false;
+        months.forEach((month) => {
+          if (ensureTemplateGenerationForMonth(month)) changed = true;
+        });
+        if (changed) saveData();
+      }
+
+      function onSubmitTemplate(e) {
+        e.preventDefault();
+        const name = els.tplName.value.trim();
+        const merchant = els.tplMerchant.value.trim();
+        const amount = Number(els.tplAmount.value || 0);
+        const day = Number(els.tplDay.value || 1);
+        const categoryId = els.tplCategory.value;
+        const isPlanned = els.tplPlanned.checked;
+        if (!name || amount <= 0 || day < 1) return;
+
+        state.templates.push({
+          id: crypto.randomUUID(),
+          name,
+          merchant,
+          amount,
+          day,
+          categoryId,
+          isPlanned,
+        });
+        saveData();
+        els.templateForm.reset();
+        els.tplDay.value = "1";
+        els.tplPlanned.checked = true;
+        renderAll();
+      }
+
+      function onDeleteTemplate(e) {
+        const btn = e.target.closest("button[data-template-id]");
+        if (!btn) return;
+        const id = btn.dataset.templateId;
+        state.templates = state.templates.filter((tpl) => tpl.id !== id);
+        saveData();
+        renderAll();
+      }
+
+      async function onImportCsv() {
+        const file = els.csvFile.files?.[0];
+        if (!file) {
+          els.csvImportMsg.textContent = "CSV 파일을 먼저 선택해주세요.";
+          return;
+        }
+
+        try {
+          const text = await file.text();
+          const rows = parseCsv(text);
+          if (rows.length <= 1) {
+            els.csvImportMsg.textContent = "CSV 데이터가 비어있습니다.";
+            return;
+          }
+
+          const headers = rows[0].map(normalizeHeader);
+          const dataRows = rows.slice(1).filter((row) => row.some((cell) => String(cell).trim() !== ""));
+          const grouped = new Map();
+          let skipped = 0;
+
+          dataRows.forEach((row) => {
+            const rec = {};
+            headers.forEach((h, i) => {
+              rec[h] = (row[i] || "").trim();
+            });
+
+            const date = normalizeDate(rec.date || rec.paymentdate || rec.transactiondate || rec.결제일 || "");
+            if (!date) {
+              skipped += 1;
+              return;
+            }
+
+            const merchant = rec.merchant || rec.store || rec.가맹점 || "미지정 가맹점";
+            const totalAmountRaw = toNumber(rec.totalamount || rec.total || rec.amount || rec.금액 || "0");
+            const itemAmount = toNumber(rec.itemamount || rec.항목금액 || rec.amount || rec.금액 || totalAmountRaw || "0");
+            const itemName = rec.itemname || rec.item || rec.항목 || merchant;
+            const categoryName = rec.category || rec.카테고리 || "";
+            const rawCategoryId = findCategoryIdByName(categoryName);
+            const decision = resolveCategoryDecision(merchant, itemName, rawCategoryId);
+            const isPlanned = parsePlannedValue(rec.isplanned || rec.planned || rec.계획여부 || "");
+            const groupKey = rec.transactionid || rec.txid || `${date}|${merchant}|${String(totalAmountRaw)}`;
+
+            if (!grouped.has(groupKey)) {
+              grouped.set(groupKey, {
+                date,
+                merchant,
+                totalAmountRaw,
+                items: [],
+              });
+            }
+
+            grouped.get(groupKey).items.push({
+              id: crypto.randomUUID(),
+              name: itemName,
+              amount: itemAmount,
+              categoryId: decision.categoryId,
+              classificationSource: decision.classificationSource,
+              isPlanned,
+            });
+          });
+
+          const imported = [];
+          grouped.forEach((g) => {
+            const itemSum = g.items.reduce((acc, it) => acc + Number(it.amount || 0), 0);
+            if (itemSum <= 0) {
+              skipped += 1;
+              return;
+            }
+            imported.push({
+              id: crypto.randomUUID(),
+              date: g.date,
+              merchant: g.merchant,
+              totalAmount: itemSum > 0 ? itemSum : g.totalAmountRaw,
+              items: g.items,
+              sourceType: "csv",
+            });
+          });
+
+          imported.sort((a, b) => b.date.localeCompare(a.date));
+          const mergedOrImported = [];
+          imported.forEach((tx) => {
+            const dupIndex = state.transactions.findIndex((old) => isSameTransaction(old, tx));
+            if (dupIndex === -1) {
+              state.transactions.unshift(tx);
+              mergedOrImported.push({ type: "import", tx });
+              return;
+            }
+
+            const existing = state.transactions[dupIndex];
+            const policy = state.settings.duplicatePolicy || DEFAULT_SETTINGS.duplicatePolicy;
+            if (policy === "keep_all") {
+              state.transactions.unshift(tx);
+              mergedOrImported.push({ type: "import", tx });
+              return;
+            }
+            if (policy === "skip") {
+              skipped += 1;
+              return;
+            }
+
+            const confirmMerge = confirm(
+              `중복 가능 거래를 찾았습니다.\n[기존] ${existing.date} ${existing.merchant} ${formatWon(
+                existing.totalAmount
+              )}\n[신규] ${tx.date} ${tx.merchant} ${formatWon(tx.totalAmount)}\n병합할까요?`
+            );
+            if (!confirmMerge) {
+              skipped += 1;
+              return;
+            }
+
+            const mergedItems = mergeTransactionItems(existing.items, tx.items);
+            const mergedTotal = mergedItems.reduce((acc, it) => acc + Number(it.amount || 0), 0);
+            state.transactions[dupIndex] = {
+              ...existing,
+              items: mergedItems,
+              totalAmount: mergedTotal,
+            };
+            mergedOrImported.push({ type: "merge", tx: state.transactions[dupIndex] });
+          });
+
+          saveData();
+          renderAll();
+          const importedCount = mergedOrImported.filter((x) => x.type === "import").length;
+          const mergedCount = mergedOrImported.filter((x) => x.type === "merge").length;
+          els.csvImportMsg.textContent = `CSV 가져오기 완료: ${importedCount}건 추가, ${mergedCount}건 병합, ${skipped}건 건너뜀`;
+        } catch {
+          els.csvImportMsg.textContent = "CSV 처리 중 오류가 발생했습니다. 파일 형식을 확인해주세요.";
+        }
+      }
+
+      function isSameTransaction(a, b) {
+        if (!a || !b) return false;
+        return a.date === b.date && a.merchant === b.merchant && Number(a.totalAmount) === Number(b.totalAmount);
+      }
+
+      function mergeTransactionItems(baseItems, addItems) {
+        const merged = [...baseItems];
+        addItems.forEach((it) => {
+          const exists = merged.some(
+            (m) =>
+              m.name === it.name &&
+              Number(m.amount) === Number(it.amount) &&
+              (m.categoryId || "") === (it.categoryId || "") &&
+              Boolean(m.isPlanned) === Boolean(it.isPlanned)
+          );
+          if (!exists) merged.push(it);
+        });
+        return merged;
+      }
+
+      function parseCsv(text) {
+        const rows = [];
+        let row = [];
+        let cell = "";
+        let inQuotes = false;
+        for (let i = 0; i < text.length; i += 1) {
+          const ch = text[i];
+          const next = text[i + 1];
+          if (ch === '"') {
+            if (inQuotes && next === '"') {
+              cell += '"';
+              i += 1;
+            } else {
+              inQuotes = !inQuotes;
+            }
+          } else if (ch === "," && !inQuotes) {
+            row.push(cell);
+            cell = "";
+          } else if ((ch === "\n" || ch === "\r") && !inQuotes) {
+            if (ch === "\r" && next === "\n") i += 1;
+            row.push(cell);
+            rows.push(row);
+            row = [];
+            cell = "";
+          } else {
+            cell += ch;
+          }
+        }
+        row.push(cell);
+        rows.push(row);
+        return rows;
+      }
+
+      function normalizeHeader(header) {
+        return String(header || "")
+          .replaceAll("\uFEFF", "")
+          .trim()
+          .toLowerCase()
+          .replaceAll(" ", "")
+          .replaceAll("_", "");
+      }
+
+      function toNumber(value) {
+        return Number(String(value || "0").replaceAll(",", "").replaceAll("원", "").trim()) || 0;
+      }
+
+      function normalizeDate(raw) {
+        const str = String(raw || "").trim();
+        if (!str) return "";
+        if (/^\d{4}-\d{2}-\d{2}$/.test(str)) return str;
+        const mdOnly = str.match(/^(\d{1,2})\s*월\s*(\d{1,2})\s*일$/);
+        if (mdOnly) {
+          const year = new Date().getFullYear();
+          const month = Number(mdOnly[1]);
+          const day = Number(mdOnly[2]);
+          const d = new Date(year, month - 1, day);
+          if (!Number.isNaN(d.getTime()) && d.getMonth() === month - 1 && d.getDate() === day) {
+            return toDateInput(d);
+          }
+        }
+        const ymdKo = str.match(/^(\d{4})\s*년\s*(\d{1,2})\s*월\s*(\d{1,2})\s*일$/);
+        if (ymdKo) {
+          const year = Number(ymdKo[1]);
+          const month = Number(ymdKo[2]);
+          const day = Number(ymdKo[3]);
+          const d = new Date(year, month - 1, day);
+          if (!Number.isNaN(d.getTime()) && d.getFullYear() === year && d.getMonth() === month - 1 && d.getDate() === day) {
+            return toDateInput(d);
+          }
+        }
+        const normalized = str.replaceAll(".", "-").replaceAll("/", "-");
+        const d = new Date(normalized);
+        if (Number.isNaN(d.getTime())) return "";
+        return toDateInput(d);
+      }
+
+      function findCategoryIdByName(name) {
+        if (!name) return "";
+        const target = String(name).trim().toLowerCase();
+        const found = state.categories.find((c) => c.name.trim().toLowerCase() === target);
+        return found ? found.id : "";
+      }
+
+      function parsePlannedValue(value) {
+        const v = String(value || "").trim().toLowerCase().replaceAll(" ", "");
+        if (!v) return true;
+        if (["false", "0", "no", "n", "비계획", "계획외"].includes(v)) return false;
+        return true;
+      }
+
+      function onSubmitCategory(e) {
+        e.preventDefault();
+        const name = els.catName.value.trim();
+        const budget = Number(els.catBudget.value || 0);
+        if (!name) return;
+        state.categories.push({ id: crypto.randomUUID(), name, budget });
+        saveData();
+        els.categoryForm.reset();
+        renderAll();
+      }
+
+      function onDeleteCategory(e) {
+        const btn = e.target.closest("button[data-category-id]");
+        if (!btn) return;
+        const id = btn.dataset.categoryId;
+        state.categories = state.categories.filter((c) => c.id !== id);
+        state.rules = state.rules.filter((r) => r.categoryId !== id);
+        state.templates.forEach((tpl) => {
+          if (tpl.categoryId === id) tpl.categoryId = "";
+        });
+        state.transactions.forEach((tx) =>
+          tx.items.forEach((it) => {
+            if (it.categoryId === id) it.categoryId = "";
+          })
+        );
+        saveData();
+        renderAll();
+      }
+
+      function onSubmitRule(e) {
+        e.preventDefault();
+        const keyword = els.ruleKeyword.value.trim();
+        const categoryId = els.ruleCategory.value;
+        if (!keyword || !categoryId) return;
+        state.rules.unshift({ id: crypto.randomUUID(), keyword, categoryId });
+        saveData();
+        els.ruleForm.reset();
+        renderAll();
+      }
+
+      function onDeleteRule(e) {
+        const btn = e.target.closest("button[data-rule-id]");
+        if (!btn) return;
+        const id = btn.dataset.ruleId;
+        state.rules = state.rules.filter((r) => r.id !== id);
+        saveData();
+        renderAll();
+      }
+
+      function getMonthItems(targetMonth) {
+        return state.transactions
+          .filter((tx) => tx.date.startsWith(targetMonth))
+          .flatMap((tx) =>
+            tx.items.map((item) => ({
+              ...item,
+              date: tx.date,
+              merchant: tx.merchant,
+            }))
+          );
+      }
+
+      function getCategoryName(id) {
+        if (!id) return "미분류";
+        return state.categories.find((c) => c.id === id)?.name || "삭제된 카테고리";
+      }
+
+      function getClassificationSourceLabel(source) {
+        if (source === "manual") return "수동";
+        if (source === "rule") return "규칙";
+        if (source === "suggested") return "추천";
+        if (source === "template") return "템플릿";
+        return "미분류";
+      }
+
+      function buildMonthlySummary(targetMonth) {
+        const items = getMonthItems(targetMonth);
+        const actualMap = new Map();
+        items.forEach((it) => {
+          const key = it.categoryId || "unclassified";
+          actualMap.set(key, (actualMap.get(key) || 0) + it.amount);
+        });
+
+        const summaries = state.categories.map((c) => {
+          const actual = actualMap.get(c.id) || 0;
+          return {
+            id: c.id,
+            name: c.name,
+            budget: c.budget,
+            actual,
+            over: Math.max(0, actual - c.budget),
+            rate: c.budget > 0 ? (actual / c.budget) * 100 : 0,
+          };
+        });
+
+        const unclassifiedActual = actualMap.get("unclassified") || 0;
+        if (unclassifiedActual > 0) {
+          summaries.push({
+            id: "unclassified",
+            name: "미분류",
+            budget: 0,
+            actual: unclassifiedActual,
+            over: unclassifiedActual,
+            rate: 0,
+          });
+        }
+
+        return summaries;
+      }
+
+      function renderDashboard() {
+        const month = els.dashboardMonthFilter.value || toMonthInput(new Date());
+        els.dashboardMonthLabel.textContent = `${month} 기준`;
+        ensureTemplateGenerationForMonth(month);
+        const summary = buildMonthlySummary(month);
+        const monthItems = getMonthItems(month);
+
+        const totalBudget = summary.reduce((acc, c) => acc + c.budget, 0);
+        const totalActual = monthItems.reduce((acc, c) => acc + c.amount, 0);
+        const totalOver = summary.reduce((acc, c) => acc + c.over, 0);
+        const unplannedSum = monthItems.filter((x) => !x.isPlanned).reduce((acc, x) => acc + x.amount, 0);
+        const now = new Date();
+        const currentMonth = toMonthInput(now);
+        const daysInMonth = getDaysInMonth(month);
+        let elapsedDays = daysInMonth;
+        let actualToDate = totalActual;
+        let forecastTotal = totalActual;
+        let forecastHint = "선택월 확정값 기준";
+        if (month === currentMonth) {
+          elapsedDays = Math.max(1, now.getDate());
+          actualToDate = monthItems
+            .filter((x) => Number(x.date.slice(-2)) <= now.getDate())
+            .reduce((acc, x) => acc + x.amount, 0);
+          forecastTotal = Math.round((actualToDate / elapsedDays) * daysInMonth);
+          forecastHint = `${elapsedDays}일 사용 추세 기준 예상`;
+        } else if (month > currentMonth) {
+          elapsedDays = 1;
+          actualToDate = 0;
+          forecastTotal = 0;
+          forecastHint = "미래 월은 예측값을 0으로 표시";
+        }
+        const forecastOver = Math.max(0, forecastTotal - totalBudget);
+        const prevMonth = getPreviousMonthInput(month);
+        const prevTotal = getMonthItems(prevMonth).reduce((acc, x) => acc + x.amount, 0);
+        let momText = "-";
+        let momClass = "value";
+        if (prevTotal > 0) {
+          const delta = totalActual - prevTotal;
+          const rate = (delta / prevTotal) * 100;
+          const sign = delta > 0 ? "+" : "";
+          momText = `${sign}${formatWon(delta)} (${sign}${rate.toFixed(1)}%)`;
+          momClass = delta > 0 ? "value danger" : "value";
+        }
+
+        els.sumBudget.textContent = formatWon(totalBudget);
+        els.sumActual.textContent = formatWon(totalActual);
+        els.sumOver.textContent = formatWon(totalOver);
+        els.sumUnplanned.textContent = formatWon(unplannedSum);
+        els.sumForecast.textContent = formatWon(forecastTotal);
+        els.sumForecastOver.textContent = formatWon(forecastOver);
+        els.sumMoMChange.className = momClass;
+        els.sumMoMChange.textContent = momText;
+        els.forecastHint.textContent = forecastHint;
+        renderMonthlyTrend(month, totalBudget);
+        renderDashboardAlerts({ month, summary, monthItems, totalActual, forecastOver });
+        const topCategoryRanks = new Map(
+          [...summary]
+            .filter((c) => c.actual > 0)
+            .sort((a, b) => b.actual - a.actual)
+            .slice(0, 3)
+            .map((c, index) => [c.id, index + 1])
+        );
+        const orderedSummary = [...summary].sort((a, b) => {
+          const rankA = topCategoryRanks.get(a.id) || 99;
+          const rankB = topCategoryRanks.get(b.id) || 99;
+          if (rankA !== rankB) return rankA - rankB;
+          if (b.actual !== a.actual) return b.actual - a.actual;
+          return a.name.localeCompare(b.name, "ko-KR");
+        });
+
+        els.categoryProgress.innerHTML = orderedSummary
+          .map((c) => {
+            const rank = topCategoryRanks.get(c.id) || 0;
+            return `
+            <div class="card ${rank ? `top-category-card rank-${rank}` : ""}">
+              <div class="metric">
+                <strong>${escapeHtml(c.name)}${
+                  rank ? `<span class="top-category-badge">${rank}위 지출</span>` : ""
+                }</strong>
+                <span>${formatWon(c.actual)} / ${formatWon(c.budget)}</span>
+              </div>
+              <div class="progress">
+                <div class="bar ${c.rate > 100 ? "over" : ""}" style="width:${Math.min(c.rate, 100)}%"></div>
+              </div>
+              <div class="small" style="margin-top:6px">${c.over > 0 ? `초과 ${formatWon(c.over)}` : "예산 내 사용 중"}</div>
+            </div>
+          `;
+          })
+          .join("");
+
+        const topUnplanned = monthItems
+          .filter((x) => !x.isPlanned)
+          .sort((a, b) => b.amount - a.amount)
+          .slice(0, 5);
+        els.topUnplanned.innerHTML = topUnplanned.length
+          ? topUnplanned
+              .map(
+                (x) =>
+                  `<div class="metric"><span>${escapeHtml(x.merchant)} · ${escapeHtml(x.name)}</span><span class="value">${formatWon(
+                    x.amount
+                  )}</span></div>`
+              )
+              .join("")
+          : "이번 달 계획 외 지출 항목이 없습니다.";
+      }
+
+      function renderRecentTransactions() {
+        if (ensureTemplateGenerationForMonth(els.recentMonthFilter.value)) {
+          saveData();
+        }
+        const amountRange = getRecentAmountRange();
+        els.recentFilterMsg.textContent = "";
+        if (!amountRange.isValid) {
+          els.recentFilterMsg.textContent = "금액 범위가 올바르지 않습니다. 최소 금액이 최대 금액보다 큽니다.";
+          els.recentTransactions.textContent = "조건에 맞는 내역이 없습니다.";
+          els.recentCount.textContent = "조회 0건";
+          els.recentPrevPage.disabled = true;
+          els.recentNextPage.disabled = true;
+          els.recentPageInfo.textContent = "-";
+          return;
+        }
+
+        const filtered = sortRecentTransactions(state.transactions.filter((tx) => txMatchesRecentFilter(tx, amountRange)));
+        const totalCount = filtered.length;
+        const totalPages = Math.max(1, Math.ceil(totalCount / RECENT_PAGE_SIZE));
+        if (!recentShowAll) {
+          recentPage = Math.min(recentPage, totalPages);
+        }
+
+        const startIndex = (recentPage - 1) * RECENT_PAGE_SIZE;
+        const recent = recentShowAll ? filtered : filtered.slice(startIndex, startIndex + RECENT_PAGE_SIZE);
+
+        els.recentCount.textContent = `조회 ${totalCount}건`;
+        els.recentPrevPage.disabled = recentShowAll || recentPage <= 1;
+        els.recentNextPage.disabled = recentShowAll || recentPage >= totalPages;
+        els.recentPageInfo.textContent = recentShowAll ? "전체 보기 중" : `${recentPage} / ${totalPages} 페이지`;
+
+        if (!recent.length) {
+          els.recentTransactions.textContent = "조건에 맞는 내역이 없습니다.";
+          return;
+        }
+        els.recentTransactions.innerHTML = recent
+          .map((tx) => {
+            const detail = tx.items
+              .map((it) => {
+                const source = it.classificationSource || (it.categoryId ? "manual" : "unclassified");
+                const canSaveRule = source === "suggested" && !!it.categoryId;
+                return `<div style="display:flex; justify-content:space-between; gap:8px; margin-top:4px">
+                  <span>${escapeHtml(it.name)} (${getCategoryName(it.categoryId)} ${formatWon(it.amount)} · ${getClassificationSourceLabel(
+                    source
+                  )})</span>
+                  ${
+                    canSaveRule
+                      ? `<button type="button" class="btn" data-action="save-rule" data-tx-id="${tx.id}" data-item-id="${it.id}">규칙 저장</button>`
+                      : ""
+                  }
+                </div>`;
+              })
+              .join("");
+            return `<div style="margin-bottom:10px; border-bottom:1px solid var(--line); padding-bottom:8px">
+              <div style="display:flex; gap:8px; align-items:center; justify-content:space-between">
+                <div>
+                  <span class="pill">${escapeHtml(tx.date)}</span>
+                  <strong>${escapeHtml(tx.merchant)}</strong> ${formatWon(tx.totalAmount)}
+                </div>
+                <div style="display:flex; gap:6px">
+                  <button type="button" class="btn" data-action="edit" data-tx-id="${tx.id}">수정</button>
+                  <button type="button" class="btn danger" data-action="delete" data-tx-id="${tx.id}">삭제</button>
+                </div>
+              </div>
+              <div class="small">${detail}</div>
+            </div>`;
+          })
+          .join("");
+      }
+
+      function renderCategoryArea() {
+        els.categoryList.innerHTML = `
+          <table>
+            <thead><tr><th>카테고리</th><th>월 예산</th><th></th></tr></thead>
+            <tbody>
+              ${state.categories
+                .map(
+                  (c) => `
+                <tr>
+                  <td>${escapeHtml(c.name)}</td>
+                  <td>${formatWon(c.budget)}</td>
+                  <td><button type="button" class="btn danger" data-category-id="${c.id}">삭제</button></td>
+                </tr>
+              `
+                )
+                .join("")}
+            </tbody>
+          </table>
+        `;
+
+        els.ruleCategory.innerHTML = `<option value="">카테고리 선택</option>${state.categories
+          .map((c) => `<option value="${c.id}">${escapeHtml(c.name)}</option>`)
+          .join("")}`;
+
+        els.tplCategory.innerHTML = `<option value="">미분류</option>${state.categories
+          .map((c) => `<option value="${c.id}">${escapeHtml(c.name)}</option>`)
+          .join("")}`;
+
+        const recentCategoryOptions = ['<option value="all">전체 카테고리</option>', '<option value="unclassified">미분류</option>']
+          .concat(state.categories.map((c) => `<option value="${c.id}">${escapeHtml(c.name)}</option>`))
+          .join("");
+        const prevValue = els.recentCategoryFilter.value || "all";
+        els.recentCategoryFilter.innerHTML = recentCategoryOptions;
+        els.recentCategoryFilter.value =
+          prevValue === "all" || prevValue === "unclassified" || state.categories.some((c) => c.id === prevValue)
+            ? prevValue
+            : "all";
+      }
+
+      function renderRuleArea() {
+        els.ruleList.innerHTML = `
+          <table>
+            <thead><tr><th>키워드</th><th>분류 카테고리</th><th></th></tr></thead>
+            <tbody>
+              ${
+                state.rules.length
+                  ? state.rules
+                      .map(
+                        (r) => `
+                  <tr>
+                    <td>${escapeHtml(r.keyword)}</td>
+                    <td>${escapeHtml(getCategoryName(r.categoryId))}</td>
+                    <td><button type="button" class="btn danger" data-rule-id="${r.id}">삭제</button></td>
+                  </tr>
+                `
+                      )
+                      .join("")
+                  : '<tr><td colspan="3" class="small">아직 규칙이 없습니다.</td></tr>'
+              }
+            </tbody>
+          </table>
+        `;
+      }
+
+      function renderSettingsArea() {
+        const settings = { ...DEFAULT_SETTINGS, ...(state.settings || {}) };
+        els.settingDuplicatePolicy.value = settings.duplicatePolicy;
+        els.settingDefaultKeyword.value = settings.defaultMerchantKeyword || "";
+        els.settingWarnPercent.value = String(settings.thresholdWarnPct);
+        els.settingOverPercent.value = String(settings.thresholdOverPct);
+        els.settingUnplannedPercent.value = String(settings.thresholdUnplannedPct);
+        els.settingGrowthPercent.value = String(settings.thresholdGrowthPct);
+
+        const options = ['<option value="">카테고리 선택</option>']
+          .concat(state.categories.map((c) => `<option value="${c.id}">${escapeHtml(c.name)}</option>`))
+          .join("");
+        els.settingDefaultCategory.innerHTML = options;
+        const found = state.categories.find((c) => c.name.trim() === (settings.defaultMerchantCategoryName || "").trim());
+        els.settingDefaultCategory.value = found ? found.id : "";
+        els.undoAutoFixBtn.disabled = !state.lastAutoFixBackup;
+      }
+
+      function runHealthCheck() {
+        const findings = [];
+        let warningCount = 0;
+
+        const validCategoryIds = new Set(state.categories.map((c) => c.id));
+
+        state.transactions.forEach((tx) => {
+          const itemSum = tx.items.reduce((acc, it) => acc + Number(it.amount || 0), 0);
+          if (itemSum !== Number(tx.totalAmount || 0)) {
+            warningCount += 1;
+            findings.push(`[거래합계] ${tx.date} ${tx.merchant} 합계 불일치 (거래 ${formatWon(tx.totalAmount)} / 항목 ${formatWon(itemSum)})`);
+          }
+          if (!/^\d{4}-\d{2}-\d{2}$/.test(String(tx.date || ""))) {
+            warningCount += 1;
+            findings.push(`[날짜형식] ${tx.merchant} 거래일 형식이 올바르지 않습니다: ${tx.date}`);
+          }
+          tx.items.forEach((it) => {
+            if (!it.categoryId) {
+              warningCount += 1;
+              findings.push(`[미분류] ${tx.date} ${tx.merchant} - ${it.name}`);
+            } else if (!validCategoryIds.has(it.categoryId)) {
+              warningCount += 1;
+              findings.push(`[카테고리누락] ${tx.date} ${tx.merchant} - ${it.name} (삭제된 카테고리 참조)`);
+            }
+          });
+        });
+
+        const duplicateMap = new Map();
+        state.transactions.forEach((tx) => {
+          const key = `${tx.date}|${tx.merchant}|${Number(tx.totalAmount || 0)}`;
+          duplicateMap.set(key, (duplicateMap.get(key) || 0) + 1);
+        });
+        duplicateMap.forEach((count, key) => {
+          if (count > 1) {
+            warningCount += 1;
+            findings.push(`[중복후보] ${key.replaceAll("|", " / ")} (${count}건)`);
+          }
+        });
+
+        state.rules.forEach((r) => {
+          if (!validCategoryIds.has(r.categoryId)) {
+            warningCount += 1;
+            findings.push(`[규칙오류] "${r.keyword}" 규칙이 삭제된 카테고리를 참조합니다.`);
+          }
+        });
+
+        state.templates.forEach((tpl) => {
+          const day = Number(tpl.day || 0);
+          if (day < 1 || day > 31) {
+            warningCount += 1;
+            findings.push(`[템플릿오류] ${tpl.name} 결제일(${tpl.day})이 유효하지 않습니다.`);
+          }
+          if (Number(tpl.amount || 0) <= 0) {
+            warningCount += 1;
+            findings.push(`[템플릿오류] ${tpl.name} 금액이 0 이하입니다.`);
+          }
+          if (tpl.categoryId && !validCategoryIds.has(tpl.categoryId)) {
+            warningCount += 1;
+            findings.push(`[템플릿오류] ${tpl.name} 카테고리가 유효하지 않습니다.`);
+          }
+        });
+
+        return { warningCount, findings };
+      }
+
+      function renderHealthCheck() {
+        const result = runHealthCheck();
+        if (result.warningCount === 0) {
+          els.healthSummary.textContent = "진단 결과: 이상 항목이 없습니다.";
+          els.healthFindings.textContent = "";
+          return;
+        }
+        els.healthSummary.textContent = `진단 결과: 점검 필요 항목 ${result.warningCount}건`;
+        els.healthFindings.innerHTML = result.findings
+          .slice(0, 50)
+          .map((f) => `<div class="alert-row">${escapeHtml(f)}</div>`)
+          .join("");
+      }
+
+      function onPreviewAutoFixHealth() {
+        const snapshot = structuredClone(state);
+        const plan = buildAutoFixPlan(snapshot);
+        els.healthSummary.textContent = `미리보기: 적용 예정 ${plan.stats.total}건`;
+        if (!plan.actions.length) {
+          els.healthFindings.textContent = "자동 수정으로 변경될 내용이 없습니다.";
+          return;
+        }
+        els.healthFindings.innerHTML = plan.actions
+          .slice(0, 80)
+          .map((line) => `<div class="alert-row">${escapeHtml(line)}</div>`)
+          .join("");
+      }
+
+      function onAutoFixHealth() {
+        const ok = confirm("진단 결과를 자동 수정할까요? (합계 보정/중복 병합/카테고리 참조 정리)");
+        if (!ok) return;
+        state.lastAutoFixBackup = {
+          createdAt: new Date().toISOString(),
+          transactions: structuredClone(state.transactions),
+          rules: structuredClone(state.rules),
+          templates: structuredClone(state.templates),
+        };
+        const plan = buildAutoFixPlan(state);
+        const stats = plan.stats;
+        saveData();
+        renderAll();
+        els.healthSummary.textContent = `자동 수정 완료: 총 ${stats.total}건 반영`;
+        els.healthFindings.innerHTML = [
+          `합계 보정 ${stats.fixedTotals}건`,
+          `중복 병합 ${stats.mergedDuplicates}건`,
+          `카테고리 보정 ${stats.fixedCategories}건`,
+          `규칙 정리 ${stats.fixedRules}건`,
+          `템플릿 정리 ${stats.fixedTemplates}건`,
+          `날짜 보정 ${stats.fixedDates}건`,
+        ]
+          .map((line) => `<div class="alert-row">${escapeHtml(line)}</div>`)
+          .join("");
+      }
+
+      function onUndoAutoFix() {
+        const backup = state.lastAutoFixBackup;
+        if (!backup) {
+          els.healthSummary.textContent = "되돌릴 자동 수정 이력이 없습니다.";
+          return;
+        }
+        const ok = confirm("마지막 자동 수정 결과를 되돌릴까요?");
+        if (!ok) return;
+        state.transactions = structuredClone(backup.transactions || []);
+        state.rules = structuredClone(backup.rules || []);
+        state.templates = structuredClone(backup.templates || []);
+        state.lastAutoFixBackup = null;
+        saveData();
+        renderAll();
+        els.healthSummary.textContent = "마지막 자동 수정을 되돌렸습니다.";
+        els.healthFindings.textContent = `복원 시각: ${backup.createdAt || "-"}`;
+      }
+
+      function buildAutoFixPlan(targetState) {
+        const stats = {
+          fixedTotals: 0,
+          mergedDuplicates: 0,
+          fixedCategories: 0,
+          fixedRules: 0,
+          fixedTemplates: 0,
+          fixedDates: 0,
+          total: 0,
+        };
+        const actions = [];
+
+        const validCategoryIds = new Set(targetState.categories.map((c) => c.id));
+
+        targetState.transactions.forEach((tx) => {
+          const originalDate = tx.date;
+          const normalizedTxDate = normalizeDate(tx.date);
+          if (normalizedTxDate && normalizedTxDate !== tx.date) {
+            tx.date = normalizedTxDate;
+            stats.fixedDates += 1;
+            actions.push(`[날짜보정] ${originalDate} -> ${normalizedTxDate} (${tx.merchant})`);
+          }
+
+          tx.items.forEach((it) => {
+            if (it.categoryId && !validCategoryIds.has(it.categoryId)) {
+              it.categoryId = "";
+              actions.push(`[카테고리정리] 유효하지 않은 카테고리 제거: ${tx.date} ${tx.merchant} - ${it.name}`);
+            }
+            if (!it.categoryId) {
+              const decision = resolveCategoryDecisionFromData(targetState, tx.merchant, it.name, "");
+              if (decision.categoryId) {
+                it.categoryId = decision.categoryId;
+                it.classificationSource = decision.classificationSource;
+                stats.fixedCategories += 1;
+                actions.push(
+                  `[재분류] ${tx.date} ${tx.merchant} - ${it.name} -> ${getCategoryName(decision.categoryId)} (${getClassificationSourceLabel(
+                    decision.classificationSource
+                  )})`
+                );
+              }
+            }
+          });
+
+          const itemSum = tx.items.reduce((acc, it) => acc + Number(it.amount || 0), 0);
+          if (itemSum > 0 && Number(tx.totalAmount || 0) !== itemSum) {
+            const before = tx.totalAmount;
+            tx.totalAmount = itemSum;
+            stats.fixedTotals += 1;
+            actions.push(`[합계보정] ${tx.date} ${tx.merchant} ${formatWon(before)} -> ${formatWon(itemSum)}`);
+          }
+        });
+
+        const mergedTransactions = new Map();
+        targetState.transactions.forEach((tx) => {
+          const key = `${tx.date}|${tx.merchant}|${Number(tx.totalAmount || 0)}`;
+          if (!mergedTransactions.has(key)) {
+            mergedTransactions.set(key, tx);
+            return;
+          }
+          const base = mergedTransactions.get(key);
+          const mergedItems = mergeTransactionItems(base.items, tx.items);
+          if (mergedItems.length !== base.items.length) {
+            base.items = mergedItems;
+            base.totalAmount = mergedItems.reduce((acc, it) => acc + Number(it.amount || 0), 0);
+          }
+          stats.mergedDuplicates += 1;
+          actions.push(`[중복병합] ${key.replaceAll("|", " / ")}`);
+        });
+        targetState.transactions = [...mergedTransactions.values()].sort((a, b) => b.date.localeCompare(a.date));
+
+        targetState.rules = targetState.rules.filter((r) => {
+          if (!validCategoryIds.has(r.categoryId)) {
+            stats.fixedRules += 1;
+            actions.push(`[규칙삭제] "${r.keyword}" (삭제된 카테고리 참조)`);
+            return false;
+          }
+          return true;
+        });
+
+        targetState.templates = targetState.templates
+          .filter((tpl) => {
+            if (Number(tpl.amount || 0) <= 0) {
+              stats.fixedTemplates += 1;
+              actions.push(`[템플릿삭제] ${tpl.name} (금액 <= 0)`);
+              return false;
+            }
+            return true;
+          })
+          .map((tpl) => {
+            const next = { ...tpl };
+            const beforeDay = Number(next.day || 1);
+            const clampedDay = Math.max(1, Math.min(31, beforeDay));
+            if (clampedDay !== beforeDay) {
+              next.day = clampedDay;
+              stats.fixedTemplates += 1;
+              actions.push(`[템플릿보정] ${next.name} 결제일 ${beforeDay} -> ${clampedDay}`);
+            }
+            if (next.categoryId && !validCategoryIds.has(next.categoryId)) {
+              next.categoryId = "";
+              stats.fixedTemplates += 1;
+              actions.push(`[템플릿보정] ${next.name} 카테고리 참조 제거`);
+            }
+            return next;
+          });
+
+        stats.total =
+          stats.fixedTotals +
+          stats.mergedDuplicates +
+          stats.fixedCategories +
+          stats.fixedRules +
+          stats.fixedTemplates +
+          stats.fixedDates;
+        return { stats, actions };
+      }
+
+      function renderTemplateArea() {
+        els.templateList.innerHTML = `
+          <table>
+            <thead><tr><th>항목명</th><th>가맹점</th><th>금액</th><th>결제일</th><th>카테고리</th><th>계획</th><th></th></tr></thead>
+            <tbody>
+              ${
+                state.templates.length
+                  ? state.templates
+                      .map(
+                        (tpl) => `
+                  <tr>
+                    <td>${escapeHtml(tpl.name)}</td>
+                    <td>${escapeHtml(tpl.merchant || "-")}</td>
+                    <td>${formatWon(tpl.amount)}</td>
+                    <td>매월 ${Number(tpl.day)}일</td>
+                    <td>${escapeHtml(getCategoryName(tpl.categoryId))}</td>
+                    <td>${tpl.isPlanned === false ? "계획 외" : "계획"}</td>
+                    <td><button type="button" class="btn danger" data-template-id="${tpl.id}">삭제</button></td>
+                  </tr>
+                `
+                      )
+                      .join("")
+                  : '<tr><td colspan="7" class="small">아직 템플릿이 없습니다.</td></tr>'
+              }
+            </tbody>
+          </table>
+        `;
+      }
+
+      function renderReport() {
+        const month = els.monthFilter.value || toMonthInput(new Date());
+        if (ensureTemplateGenerationForMonth(month)) {
+          saveData();
+        }
+        const onlyUnplanned = els.onlyUnplanned.checked;
+        const summary = buildMonthlySummary(month);
+        const items = getMonthItems(month).filter((x) => !onlyUnplanned || !x.isPlanned);
+
+        const totalActual = items.reduce((acc, it) => acc + it.amount, 0);
+        const dailyMap = new Map();
+        items.forEach((it) => {
+          const key = it.date;
+          dailyMap.set(key, (dailyMap.get(key) || 0) + it.amount);
+        });
+        const dailyRows = [...dailyMap.entries()]
+          .sort((a, b) => a[0].localeCompare(b[0]))
+          .map(
+            ([date, amount]) => `<tr><td>${escapeHtml(date)}</td><td>${formatWon(amount)}</td></tr>`
+          )
+          .join("");
+
+        const rows = summary
+          .map((s) => {
+            const actual = items
+              .filter((i) => (i.categoryId || "unclassified") === (s.id || "unclassified"))
+              .reduce((acc, i) => acc + i.amount, 0);
+            const over = Math.max(0, actual - s.budget);
+            return `
+              <tr>
+                <td>${escapeHtml(s.name)}</td>
+                <td>${formatWon(s.budget)}</td>
+                <td>${formatWon(actual)}</td>
+                <td class="${over > 0 ? "danger" : ""}">${formatWon(over)}</td>
+              </tr>
+            `;
+          })
+          .join("");
+
+        els.reportTable.innerHTML = `
+          <div class="metric"><span>${month} 총 지출</span><span class="value">${formatWon(totalActual)}</span></div>
+          <table>
+            <thead><tr><th>카테고리</th><th>계획</th><th>실제</th><th>초과</th></tr></thead>
+            <tbody>${rows}</tbody>
+          </table>
+          <h3 style="margin-top:12px">일별 추이</h3>
+          <table>
+            <thead><tr><th>날짜</th><th>지출</th></tr></thead>
+            <tbody>${dailyRows || '<tr><td colspan="2" class="small">데이터 없음</td></tr>'}</tbody>
+          </table>
+        `;
+      }
+
+      function renderAll() {
+        ensureTemplateTransactions();
+        renderCategoryArea();
+        renderTemplateArea();
+        renderRuleArea();
+        renderSettingsArea();
+        renderHealthCheck();
+        renderDashboard();
+        renderRecentTransactions();
+        renderReport();
+        updateItemsTotalView();
+      }
+
+      function escapeHtml(str) {
+        return String(str || "")
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;")
+          .replaceAll("'", "&#39;");
+      }
+
+      function registerServiceWorker() {
+        if (!("serviceWorker" in navigator)) return;
+        window.addEventListener("load", () => {
+          navigator.serviceWorker.register("./sw.js").catch(() => {});
+        });
+      }
+    </script>
+  </body>
+</html>

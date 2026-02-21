@@ -1,0 +1,18 @@
+{
+  "name": "생활비 분류 트래커",
+  "short_name": "생활비 트래커",
+  "description": "카드 지출을 분류하고 월별 추이를 확인하는 생활비 관리 앱",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f2f4f3",
+  "theme_color": "#0f7a64",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
